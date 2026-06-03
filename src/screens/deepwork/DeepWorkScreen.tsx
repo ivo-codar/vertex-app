@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, sp, r, font } from '../../theme';
 import { WorkSession, SubjectItem } from '../../types';
+import GradeScreen from '../grades/GradeScreen';
 import WeeklyChart from '../../components/WeeklyChart';
 import { useStore, todayDow, DEFAULT_SUBJECTS, COLOR_POOL } from '../../store';
 
@@ -108,6 +109,7 @@ export default function DeepWorkScreen() {
   const tickRef   = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Modals
+  const [showGradeScreen, setShowGradeScreen]     = useState(false);
   const [showAddSubject, setShowAddSubject]       = useState(false);
   const [newSubjectName, setNewSubjectName]       = useState('');
   const [showManageSubjects, setShowManageSubjects] = useState(false);
@@ -324,9 +326,9 @@ export default function DeepWorkScreen() {
               <Ionicons name="pencil" size={14} color={colors.textSub} />
               <Text style={s.headerBtnTxt}>Manuell</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[s.headerBtn, { borderColor: colors.accent + '60' }]} onPress={() => { setGradeSubject(subject); setShowGrade(true); }}>
-              <Ionicons name="star" size={14} color={colors.accent} />
-              <Text style={[s.headerBtnTxt, { color: colors.accent }]}>Note</Text>
+            <TouchableOpacity style={[s.headerBtn, s.headerBtnGold]} onPress={() => setShowGradeScreen(true)}>
+              <Ionicons name="school" size={14} color={colors.accent} />
+              <Text style={[s.headerBtnTxt, { color: colors.accent }]}>Noten</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -500,6 +502,11 @@ export default function DeepWorkScreen() {
 
         <View style={{ height: 32 }} />
       </ScrollView>
+
+      {/* ── Grade Screen Modal ── */}
+      <Modal visible={showGradeScreen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowGradeScreen(false)}>
+        <GradeScreen onClose={() => setShowGradeScreen(false)} />
+      </Modal>
 
       {/* ── Manage Subjects Modal ── */}
       <SheetModal visible={showManageSubjects} onClose={() => setShowManageSubjects(false)} title="Fächer verwalten">
@@ -793,6 +800,7 @@ const s = StyleSheet.create({
   pageHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: sp.md },
   headerActions: { flexDirection: 'row', gap: sp.sm },
   headerBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: sp.sm, paddingVertical: 6, borderRadius: r.full, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  headerBtnGold: { borderColor: colors.accent + '60', backgroundColor: colors.accentDim },
   headerBtnTxt: { fontSize: 12, fontWeight: '600', color: colors.textSub },
 
   chipRow: { gap: sp.sm, paddingRight: sp.md },

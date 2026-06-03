@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Routine, CalendarEvent,
   TrainingSplit, ExerciseRecord,
-  SubjectItem, WorkSession, GradeEntry,
+  SubjectItem, WorkSession, GradeEntry, GradeSubject, CategoryWeights,
   KanbanColumn, WeekData,
 } from '../types';
 import { colors } from '../theme';
@@ -27,6 +27,20 @@ export const DEFAULT_SUBJECTS: SubjectItem[] = [
   { name: 'Biologie',   color: '#1A9E5C', icon: 'leaf-outline' },        // field green
 ];
 export { COLOR_POOL };
+
+const DEFAULT_WEIGHTS: CategoryWeights = { Schriftlich: 50, Mündlich: 50, Praktisch: 0, Test: 0, Sonstig: 0 };
+const SPORT_WEIGHTS:   CategoryWeights = { Schriftlich: 30, Mündlich: 0,  Praktisch: 70, Test: 0, Sonstig: 0 };
+
+export const DEFAULT_GRADE_SUBJECTS: GradeSubject[] = [
+  { id: 'gs-de', name: 'Deutsch',     isLK: true,  weights: DEFAULT_WEIGHTS },
+  { id: 'gs-en', name: 'Englisch',    isLK: true,  weights: DEFAULT_WEIGHTS },
+  { id: 'gs-sp', name: 'Sport',       isLK: true,  weights: SPORT_WEIGHTS   },
+  { id: 'gs-ma', name: 'Mathe',       isLK: false, weights: DEFAULT_WEIGHTS },
+  { id: 'gs-ph', name: 'Physik',      isLK: false, weights: DEFAULT_WEIGHTS },
+  { id: 'gs-ge', name: 'Geschichte',  isLK: false, weights: DEFAULT_WEIGHTS },
+  { id: 'gs-bi', name: 'Biologie',    isLK: false, weights: DEFAULT_WEIGHTS },
+  { id: 'gs-ku', name: 'Kunst',       isLK: false, weights: { Schriftlich: 20, Mündlich: 20, Praktisch: 60, Test: 0, Sonstig: 0 } },
+];
 
 export const INITIAL_BOARD: KanbanColumn[] = [
   { id: 'todo',       title: 'To Do',       cards: [] },
@@ -56,6 +70,9 @@ interface State {
   focusSessions: WorkSession[];
   focusWeek: WeekData;
   focusGrades: GradeEntry[];
+  // Grade book
+  gradeSubjects: GradeSubject[];
+  activeSemester: 1 | 2 | 3 | 4;
   // Projects
   projectsBoard: KanbanColumn[];
   projectsWeek: WeekData;
@@ -92,6 +109,8 @@ export const useStore = create<AppStore>()(
       gymRecords: [],
       gymWeek: emptyWeek(),
       focusSubjects: DEFAULT_SUBJECTS,
+      gradeSubjects: DEFAULT_GRADE_SUBJECTS,
+      activeSemester: 1,
       focusSubject: DEFAULT_SUBJECTS[0].name,
       focusSessions: [],
       focusWeek: emptyWeek(),
@@ -173,13 +192,24 @@ export const useStore = create<AppStore>()(
 
       // Schema migration: runs when stored version < STORE_VERSION
       migrate: (stored: any, fromVersion: number) => {
-        // v0 → v1: add focusSubject, notifMap, WeekData shape
         if (fromVersion < 1) {
           stored.focusSubject  = stored.focusSubject  ?? DEFAULT_SUBJECTS[0].name;
           stored.notifMap      = stored.notifMap      ?? {};
           stored.gymWeek       = stored.gymWeek?.data ? stored.gymWeek : emptyWeek();
           stored.focusWeek     = stored.focusWeek?.data ? stored.focusWeek : emptyWeek();
           stored.projectsWeek  = stored.projectsWeek?.data ? stored.projectsWeek : emptyWeek();
+        }
+        // Always ensure grade fields exist (added in v2)
+        stored.gradeSubjects  = stored.gradeSubjects  ?? DEFAULT_GRADE_SUBJECTS;
+        stored.activeSemester = stored.activeSemester ?? 1;
+        // Migrate old GradeEntry (no category/semester) to new format
+        if (Array.isArray(stored.focusGrades)) {
+          stored.focusGrades = stored.focusGrades.map((g: any) => ({
+            ...g,
+            subjectId: g.subjectId ?? g.id,
+            category: g.category ?? 'Sonstig',
+            semester: g.semester ?? 1,
+          }));
         }
         return stored as AppStore;
       },

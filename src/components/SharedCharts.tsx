@@ -28,7 +28,7 @@ export function SimpleBarChart({ labels, values, color, unit = '' }: BarChartPro
             </Text>
             <View style={[s.barBg, {
               height: BAR_H,
-              borderColor: isLast ? color + '30' : 'transparent',
+              borderColor: isLast ? color + '60' : colors.border,
             }]}>
               <View style={[s.barFill, { height: h, backgroundColor: c }]} />
             </View>

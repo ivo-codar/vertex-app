@@ -40,7 +40,7 @@ export default function WeeklyChart({ data, color = colors.accent, unit = '' }: 
 
               {/* Bar */}
               <View style={[s.barBg, {
-                borderColor: isToday ? color + '35' : 'transparent',
+                borderColor: isToday ? color + '60' : colors.border,
               }]}>
                 <View style={[s.barFill, { height: fillH, backgroundColor: barColor }]} />
               </View>
