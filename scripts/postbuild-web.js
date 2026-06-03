@@ -15,16 +15,16 @@ html = html.replace(
 // 2. Inject mobile CSS after the expo-reset block
 const mobileCSS = `
   <style id="vertex-mobile">
-    html { background-color:#060D08; -webkit-text-size-adjust:100%; }
+    html { background-color:#06060C; -webkit-text-size-adjust:100%; }
     body {
-      background-color:#060D08;
+      background-color:#06060C;
       padding-top:env(safe-area-inset-top);
       padding-bottom:env(safe-area-inset-bottom);
       padding-left:env(safe-area-inset-left);
       padding-right:env(safe-area-inset-right);
       -webkit-font-smoothing:antialiased;
     }
-    #root { background-color:#060D08; }
+    #root { background-color:#06060C; }
     * { -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; touch-action:manipulation; }
     * { -webkit-user-select:none; user-select:none; }
     input,textarea { -webkit-user-select:text; user-select:text; font-size:16px; }

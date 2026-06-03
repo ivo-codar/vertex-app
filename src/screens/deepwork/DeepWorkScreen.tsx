@@ -26,9 +26,9 @@ type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const COLOR_PALETTE = [
-  '#448AFF', '#FFB300', '#00E676', '#1DE9B6',
-  '#FF6B9D', '#69F0AE', '#FF8A65', '#CE93D8',
-  '#80CBC4', '#F48FB1', '#00E5FF', '#A5D6A7',
+  '#00AEEF', '#C8960C', '#E09B00', '#00C9B1',
+  '#8B7FD4', '#1A9E5C', '#E07B5C', '#7B9ED9',
+  '#C0392B', '#D4A5A5', '#5BA3A0', '#9B8EC4',
 ];
 
 const ICON_OPTIONS: IoniconName[] = [

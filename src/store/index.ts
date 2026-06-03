@@ -13,17 +13,18 @@ import { getCurrentMonday } from '../utils/storage';
 // ── Defaults ──────────────────────────────────────────────────────────────────
 
 const COLOR_POOL = [
-  colors.blue, colors.amber, colors.accent, colors.teal,
-  '#FF6B9D', colors.green, '#FF8A65', '#CE93D8',
+  '#00AEEF', '#C8960C', '#E09B00', '#00C9B1',
+  '#8B7FD4', '#1A9E5C', '#E07B5C', '#7B9ED9',
+  '#C0392B', '#D4A5A5', '#5BA3A0', '#9B8EC4',
 ];
 
 export const DEFAULT_SUBJECTS: SubjectItem[] = [
-  { name: 'Mathe',      color: colors.blue,   icon: 'calculator-outline' },
-  { name: 'Physik',     color: colors.amber,  icon: 'flask-outline' },
-  { name: 'Informatik', color: colors.accent, icon: 'code-slash-outline' },
-  { name: 'Englisch',   color: colors.teal,   icon: 'language-outline' },
-  { name: 'Deutsch',    color: '#FF6B9D',     icon: 'book-outline' },
-  { name: 'Biologie',   color: colors.green,  icon: 'leaf-outline' },
+  { name: 'Mathe',      color: '#00AEEF', icon: 'calculator-outline' },  // arc reactor
+  { name: 'Physik',     color: '#E09B00', icon: 'flask-outline' },       // energy
+  { name: 'Informatik', color: '#C8960C', icon: 'code-slash-outline' },  // stark gold
+  { name: 'Englisch',   color: '#00C9B1', icon: 'language-outline' },    // jarvis teal
+  { name: 'Deutsch',    color: '#8B7FD4', icon: 'book-outline' },        // wayne purple
+  { name: 'Biologie',   color: '#1A9E5C', icon: 'leaf-outline' },        // field green
 ];
 export { COLOR_POOL };
 

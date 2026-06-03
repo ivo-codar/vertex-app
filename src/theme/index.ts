@@ -1,33 +1,61 @@
+/**
+ * VERTEX — Stark / Wayne Theme
+ *
+ * Batman: cold black, surgical precision, zero noise
+ * Stark:  refined gold, arc-reactor blue, J.A.R.V.I.S. data readouts
+ *
+ * Rule: Gold earns its place. It appears only where it matters.
+ */
+
 export const colors = {
-  bg:       '#060D08',
-  surface:  '#0C1610',
-  card:     '#111D16',
-  cardAlt:  '#172318',
-  border:   '#1E3028',
+  // ── Backgrounds ─────────────────────────────────────────────────────────────
+  // Cold blacks with a barely perceptible navy undertone — like the inside of
+  // the Batcave or a Stark Industries server room after dark.
+  bg:       '#06060C',   // void black
+  surface:  '#0A0A14',   // nav / tab bar
+  card:     '#0E0E1A',   // card surface
+  cardAlt:  '#121220',   // elevated / nested
+  border:   '#1A1A2E',   // hairline — barely there, like hologram grid lines
 
-  accent:    '#00E676',
-  accentDim: 'rgba(0, 230, 118, 0.10)',
+  // ── Stark Gold ───────────────────────────────────────────────────────────────
+  // 18-karat, not flashy. The accent strip on the Mark III suit.
+  // Earns its place: buttons, active states, progress, checkboxes.
+  accent:    '#C8960C',
+  accentDim: 'rgba(200, 150, 12, 0.13)',
 
-  blue:    '#448AFF',
-  blueDim: 'rgba(68, 138, 255, 0.10)',
+  // ── Arc Reactor Blue ─────────────────────────────────────────────────────────
+  // The chest piece. Pure, electric, data-forward.
+  // Used for: charts, focus timer, information states.
+  blue:    '#00AEEF',
+  blueDim: 'rgba(0, 174, 239, 0.12)',
 
-  teal:    '#1DE9B6',
-  tealDim: 'rgba(29, 233, 182, 0.10)',
+  // ── J.A.R.V.I.S. Teal ────────────────────────────────────────────────────────
+  // The holographic interface color. Cool, precise.
+  teal:    '#00C9B1',
+  tealDim: 'rgba(0, 201, 177, 0.10)',
 
-  cyan:    '#00E5FF',
-  cyanDim: 'rgba(0, 229, 255, 0.10)',
+  cyan:    '#00AEEF',
+  cyanDim: 'rgba(0, 174, 239, 0.10)',
 
-  green:    '#69F0AE',
-  greenDim: 'rgba(105, 240, 174, 0.10)',
+  // ── Success ───────────────────────────────────────────────────────────────────
+  // Kept subtle. Only for completion / done states.
+  green:    '#1A9E5C',
+  greenDim: 'rgba(26, 158, 92, 0.10)',
 
-  amber:    '#FFB300',
-  amberDim: 'rgba(255, 179, 0, 0.12)',
+  // ── Energy / Fire ─────────────────────────────────────────────────────────────
+  // Streak flames, repulsor charge, warnings. Warm gold-orange.
+  amber:    '#E09B00',
+  amberDim: 'rgba(224, 155, 0, 0.13)',
 
-  red: '#FF5252',
+  // ── Danger ────────────────────────────────────────────────────────────────────
+  // Iron Man red. Delete. Error. Alert.
+  red: '#C0392B',
 
-  text:     '#EDF7F0',
-  textSub:  '#7A9E86',
-  textMuted:'#3D6B50',
+  // ── Typography ───────────────────────────────────────────────────────────────
+  // Cold, screen-precise. Like reading off a monitor in a darkened lab.
+  text:      '#EAEAF4',   // near white, slight blue cast
+  textSub:   '#68789A',   // brushed steel
+  textMuted: '#2C2C42',   // deep shadow — barely readable by design
 };
 
 export const sp = {
@@ -40,33 +68,27 @@ export const sp = {
 };
 
 export const r = {
-  sm:  8,
-  md:  12,
-  lg:  16,
-  xl:  20,
-  xxl: 28,
+  sm:  6,    // sharper corners — more Wayne / Stark than rounded
+  md:  10,
+  lg:  14,
+  xl:  18,
+  xxl: 26,
   full: 999,
 };
 
 /**
- * 3-level typography hierarchy — no uppercase, consistent sizing.
- *
- * h1   28px  800 — screen hero numbers / large display
- * h2   22px  700 — screen titles
- * h3   17px  600 — card / modal titles
- * body 15px  400 — primary content
- * small 13px 400 — secondary content
- * label 12px 600 — section headers (subtle, NOT uppercase)
- * caption 11px 500 — metadata, timestamps
+ * Typography — precise, no fluff.
+ * Numbers read like J.A.R.V.I.S. readouts.
+ * No uppercase — uppercase screams "Bootstrap", not "Stark Industries".
  */
 export const font = {
   h1: {
     fontSize: 28, fontWeight: '800' as const,
-    color: colors.text, letterSpacing: -0.8,
+    color: colors.text, letterSpacing: -1,
   },
   h2: {
     fontSize: 22, fontWeight: '700' as const,
-    color: colors.text, letterSpacing: -0.4,
+    color: colors.text, letterSpacing: -0.5,
   },
   h3: {
     fontSize: 17, fontWeight: '600' as const,
@@ -81,9 +103,8 @@ export const font = {
     color: colors.textSub,
   },
   label: {
-    fontSize: 12, fontWeight: '600' as const,
-    color: colors.textSub, letterSpacing: 0.2,
-    // deliberately NO textTransform — uppercase reads as noise
+    fontSize: 11, fontWeight: '600' as const,
+    color: colors.textSub, letterSpacing: 0.5,
   },
   caption: {
     fontSize: 11, fontWeight: '500' as const,

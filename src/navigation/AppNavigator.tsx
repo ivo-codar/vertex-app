@@ -25,10 +25,14 @@ const TAB_CONFIG: Record<keyof TabParamList, { label: string; active: IconName; 
   Progress: { label: 'Progress', active: 'stats-chart', inactive: 'stats-chart-outline' },
 };
 
-function TabIcon({ name, focused, color }: { name: IconName; focused: boolean; color: string }) {
+function TabIcon({
+  name, focused, color,
+}: { name: IconName; focused: boolean; color: string }) {
   return (
-    <View style={[s.iconWrap, focused && s.iconWrapActive]}>
-      <Ionicons name={name} size={20} color={color} />
+    <View style={s.iconWrap}>
+      {/* Gold indicator line above active tab — Stark HUD style */}
+      {focused && <View style={s.indicator} />}
+      <Ionicons name={name} size={21} color={color} />
     </View>
   );
 }
@@ -54,13 +58,18 @@ export default function AppNavigator() {
             backgroundColor: colors.surface,
             borderTopColor: colors.border,
             borderTopWidth: 1,
-            height: 56 + insets.bottom,
+            height: 58 + insets.bottom,
             paddingBottom: Math.max(insets.bottom, 8),
-            paddingTop: 8,
+            paddingTop: 6,
           },
           tabBarActiveTintColor: colors.accent,
           tabBarInactiveTintColor: colors.textMuted,
-          tabBarLabelStyle: { fontSize: 11, fontWeight: '500' as const, marginTop: 2 },
+          tabBarLabelStyle: {
+            fontSize: 10,
+            fontWeight: '500' as const,
+            marginTop: 2,
+            letterSpacing: 0.3,
+          },
           tabBarLabel: cfg.label,
           tabBarIcon: ({ focused, color }) => (
             <TabIcon
@@ -83,13 +92,24 @@ export default function AppNavigator() {
 
 const s = StyleSheet.create({
   iconWrap: {
-    width: 40,
-    height: 26,
-    borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
+    width: 44,
+    height: 30,
+    gap: 4,
   },
-  iconWrapActive: {
-    backgroundColor: colors.accentDim,
+  // Thin gold line above the active icon — like a Stark UI selector
+  indicator: {
+    position: 'absolute',
+    top: 0,
+    width: 20,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: colors.accent,
+    // subtle glow effect via shadow
+    shadowColor: colors.accent,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
   },
 });
