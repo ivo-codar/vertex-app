@@ -54,13 +54,13 @@ export default function AppNavigator() {
             backgroundColor: colors.surface,
             borderTopColor: colors.border,
             borderTopWidth: 1,
-            height: 60 + insets.bottom,
-            paddingBottom: insets.bottom + 4,
-            paddingTop: 6,
+            height: 56 + insets.bottom,
+            paddingBottom: Math.max(insets.bottom, 8),
+            paddingTop: 8,
           },
           tabBarActiveTintColor: colors.accent,
           tabBarInactiveTintColor: colors.textMuted,
-          tabBarLabelStyle: { fontSize: 10, fontWeight: '500' as const, marginTop: 1 },
+          tabBarLabelStyle: { fontSize: 11, fontWeight: '500' as const, marginTop: 2 },
           tabBarLabel: cfg.label,
           tabBarIcon: ({ focused, color }) => (
             <TabIcon

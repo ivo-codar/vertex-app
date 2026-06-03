@@ -6,26 +6,37 @@ if (!fs.existsSync(file)) { console.log('dist/index.html not found, skipping.');
 
 let html = fs.readFileSync(file, 'utf8');
 
-// 1. Add background color so no white flash
+// 1. viewport-fit=cover — makes safe-area-inset-* work on iPhone
 html = html.replace(
-  /(html,?\s*\n\s*body\s*\{)/,
-  'html, body {'
-);
-html = html.replace(
-  /html,\s*body\s*\{/,
-  'html, body {\n        background-color: #060D08;'
-);
-html = html.replace(
-  /#root\s*\{/,
-  '#root {\n        background-color: #060D08;'
+  /content="width=device-width, initial-scale=1, shrink-to-fit=no"/,
+  'content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"'
 );
 
-// 2. Add type="module" to script tags — fixes "import.meta outside a module" error
-//    (Zustand v5 uses ESM syntax; loading as a module fixes this)
+// 2. Inject mobile CSS after the expo-reset block
+const mobileCSS = `
+  <style id="vertex-mobile">
+    html { background-color:#060D08; -webkit-text-size-adjust:100%; }
+    body {
+      background-color:#060D08;
+      padding-top:env(safe-area-inset-top);
+      padding-bottom:env(safe-area-inset-bottom);
+      padding-left:env(safe-area-inset-left);
+      padding-right:env(safe-area-inset-right);
+      -webkit-font-smoothing:antialiased;
+    }
+    #root { background-color:#060D08; }
+    * { -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; touch-action:manipulation; }
+    * { -webkit-user-select:none; user-select:none; }
+    input,textarea { -webkit-user-select:text; user-select:text; font-size:16px; }
+  </style>`;
+
+html = html.replace('</head>', mobileCSS + '\n</head>');
+
+// 3. type="module" — fixes import.meta error (Zustand v5 ESM)
 html = html.replace(
   /<script src="([^"]+)" defer><\/script>/g,
   '<script type="module" src="$1"></script>'
 );
 
 fs.writeFileSync(file, html);
-console.log('✓ Patched dist/index.html');
+console.log('✓ Patched dist/index.html (viewport-fit, safe-areas, mobile CSS, ESM)');
