@@ -121,21 +121,11 @@ export default function ProgressScreen() {
           </View>
         </View>
 
-        {/* ── Empty state ── */}
-        {!hasAnyData && (
-          <View style={s.emptyState}>
-            <Ionicons name="stats-chart-outline" size={44} color={colors.textMuted} />
-            <Text style={s.emptyTitle}>Noch keine Daten</Text>
-            <Text style={s.emptySub}>
-              Starte ein Workout, eine Focus-Session oder erstelle Tasks — dein Fortschritt erscheint hier automatisch.
-            </Text>
-          </View>
-        )}
-
         {/* ════ GYM ════ */}
-        {hasGym && (
-          <Section icon="barbell-outline" title="Gym" color={colors.accent}>
-
+        <Section icon="barbell-outline" title="Gym" color={colors.accent}>
+          {!hasGym ? (
+            <EmptySection text="Erstelle einen Split und starte dein erstes Workout." />
+          ) : (<>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipRow}>
               {gymRecords.map(rec => (
                 <TouchableOpacity
@@ -143,13 +133,10 @@ export default function ProgressScreen() {
                   style={[s.chip, activeEx === rec.name && s.chipActive]}
                   onPress={() => setSelectedEx(rec.name)}
                 >
-                  <Text style={[s.chipTxt, activeEx === rec.name && s.chipTxtActive]}>
-                    {rec.name}
-                  </Text>
+                  <Text style={[s.chipTxt, activeEx === rec.name && s.chipTxtActive]}>{rec.name}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
-
             {exRecord && (
               <View style={s.card}>
                 <View style={s.cardHeaderRow}>
@@ -162,76 +149,66 @@ export default function ProgressScreen() {
                         color={gymProgress >= 0 ? colors.accent : colors.amber}
                       />
                     )}
-                    {exPR > 0 && (
-                      <Badge icon="trophy" label={`PR ${exPR}kg`} color={colors.amber} />
-                    )}
+                    {exPR > 0 && <Badge icon="trophy" label={`PR ${exPR}kg`} color={colors.amber} />}
                   </View>
                 </View>
-                {exWeights.length > 1 ? (
-                  <SimpleBarChart labels={exLabels} values={exWeights} color={colors.accent} unit="kg" />
-                ) : (
-                  <Text style={s.oneSession}>Mehr Daten nach weiteren Workouts.</Text>
-                )}
+                {exWeights.length > 1
+                  ? <SimpleBarChart labels={exLabels} values={exWeights} color={colors.accent} unit="kg" />
+                  : <Text style={s.oneSession}>Mehr Daten nach weiteren Workouts.</Text>
+                }
               </View>
             )}
-
-            <View style={s.card}>
+            <View style={[s.card, { marginTop: sp.sm }]}>
               <Text style={s.cardLabel}>Sets diese Woche</Text>
               <WeeklyChart data={gymWeek} color={colors.accent} />
             </View>
-
-          </Section>
-        )}
+          </>)}
+        </Section>
 
         {/* ════ FOCUS ════ */}
-        {hasFocus && (
-          <Section icon="timer-outline" title="Deep Work" color={colors.blue}>
-
+        <Section icon="timer-outline" title="Deep Work" color={colors.blue}>
+          {!hasFocus ? (
+            <EmptySection text="Starte eine Focus-Session um deinen Lernfortschritt zu sehen." />
+          ) : (<>
             <View style={s.statsRow}>
-              <StatBox label="Gesamt"   value={fmtH(totalFocusMins)}          color={colors.blue} />
-              <StatBox label="Sessions" value={String(focusSessions.length)}   color={colors.blue} />
-              <StatBox label="Fächer"   value={String(Object.keys(bySubject).length)} color={colors.blue} />
+              <StatBox label="Gesamt"   value={fmtH(totalFocusMins)}                      color={colors.blue} />
+              <StatBox label="Sessions" value={String(focusSessions.length)}               color={colors.blue} />
+              <StatBox label="Fächer"   value={String(Object.keys(bySubject).length)}      color={colors.blue} />
             </View>
-
             <View style={[s.card, { marginTop: sp.sm }]}>
               <Text style={s.cardLabel}>Stunden diese Woche</Text>
               <WeeklyChart data={weekHours} color={colors.blue} unit="h" />
             </View>
-
             {Object.keys(bySubject).length > 0 && (
               <View style={[s.card, { marginTop: sp.sm }]}>
                 <Text style={[s.cardLabel, { marginBottom: sp.md }]}>Fächer-Verteilung</Text>
-                {Object.entries(bySubject)
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([sub, mins]) => {
-                    const pct   = totalFocusMins > 0 ? (mins / totalFocusMins) * 100 : 0;
-                    const color = colorMap[sub] ?? colors.accent;
-                    return (
-                      <View key={sub} style={{ marginBottom: sp.sm }}>
-                        <View style={s.barLabelRow}>
-                          <Text style={font.small}>{sub}</Text>
-                          <Text style={[font.small, { color }]}>{fmtH(mins)}</Text>
-                        </View>
-                        <View style={s.barBg}>
-                          <View style={[s.barFill, { width: `${pct}%` as any, backgroundColor: color }]} />
-                        </View>
+                {Object.entries(bySubject).sort((a, b) => b[1] - a[1]).map(([sub, mins]) => {
+                  const pct   = totalFocusMins > 0 ? (mins / totalFocusMins) * 100 : 0;
+                  const color = colorMap[sub] ?? colors.accent;
+                  return (
+                    <View key={sub} style={{ marginBottom: sp.sm }}>
+                      <View style={s.barLabelRow}>
+                        <Text style={font.small}>{sub}</Text>
+                        <Text style={[font.small, { color }]}>{fmtH(mins)}</Text>
                       </View>
-                    );
-                  })}
+                      <View style={s.barBg}>
+                        <View style={[s.barFill, { width: `${pct}%` as any, backgroundColor: color }]} />
+                      </View>
+                    </View>
+                  );
+                })}
               </View>
             )}
-
             {gradesBySubject.length > 0 && (
               <View style={[s.card, { marginTop: sp.sm }]}>
                 <Text style={[s.cardLabel, { marginBottom: sp.sm }]}>Noten</Text>
                 {gradesBySubject.map(({ sub, entries }) => {
-                  const avg   = entries.reduce((a, e) => a + e.points, 0) / entries.length;
-                  const avgR  = Math.round(avg * 10) / 10;
-                  const clr   = pointsColor(avgR);
+                  const avg  = entries.reduce((a, e) => a + e.points, 0) / entries.length;
+                  const avgR = Math.round(avg * 10) / 10;
+                  const clr  = pointsColor(avgR);
                   const trend = entries.length >= 2
                     ? entries[0].points > entries[1].points ? 'up'
-                    : entries[0].points < entries[1].points ? 'down' : 'same'
-                    : 'same';
+                    : entries[0].points < entries[1].points ? 'down' : 'same' : 'same';
                   return (
                     <View key={sub.name} style={s.gradeRow}>
                       <View style={[s.gradeDot, { backgroundColor: sub.color }]} />
@@ -250,15 +227,14 @@ export default function ProgressScreen() {
                 })}
               </View>
             )}
-
-          </Section>
-        )}
+          </>)}
+        </Section>
 
         {/* ════ PROJECTS ════ */}
-        {hasProject && (
-          <Section icon="layers-outline" title="Projects" color={colors.teal}>
-
-            {/* Completion ring-style card */}
+        <Section icon="layers-outline" title="Projects" color={colors.teal}>
+          {!hasProject ? (
+            <EmptySection text="Erstelle Tasks im Projects-Tab um deinen Fortschritt zu sehen." />
+          ) : (<>
             <View style={s.completionCard}>
               <View style={s.completionLeft}>
                 <Text style={s.completionPct}>{completionPct}%</Text>
@@ -267,22 +243,18 @@ export default function ProgressScreen() {
               <View style={s.completionStats}>
                 <CompletionRow label="Erledigt"    value={doneCards}  color={colors.accent} />
                 <CompletionRow label="In Progress" value={inProgress} color={colors.amber} />
-                <CompletionRow label="Offen"       value={totalCards - doneCards - inProgress} color={colors.textMuted} />
+                <CompletionRow label="Offen" value={totalCards - doneCards - inProgress} color={colors.textMuted} />
               </View>
             </View>
-
-            {/* Progress bar */}
             <View style={s.completionBar}>
               <View style={[s.completionBarFill, { width: `${completionPct}%` as any }]} />
             </View>
-
             <View style={[s.card, { marginTop: sp.md }]}>
               <Text style={s.cardLabel}>Erledigte Tasks diese Woche</Text>
               <WeeklyChart data={projectsWeek} color={colors.teal} />
             </View>
-
-          </Section>
-        )}
+          </>)}
+        </Section>
 
         <View style={{ height: 24 }} />
       </ScrollView>
@@ -291,6 +263,14 @@ export default function ProgressScreen() {
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
+
+function EmptySection({ text }: { text: string }) {
+  return (
+    <View style={es.wrap}>
+      <Text style={es.text}>{text}</Text>
+    </View>
+  );
+}
 
 function Section({ icon, title, color, children }: {
   icon: React.ComponentProps<typeof Ionicons>['name'];
@@ -329,6 +309,11 @@ function CompletionRow({ label, value, color }: { label: string; value: number; 
     </View>
   );
 }
+
+const es = StyleSheet.create({
+  wrap: { paddingVertical: sp.md, paddingHorizontal: sp.sm },
+  text: { fontSize: 13, color: colors.textMuted, textAlign: 'center', lineHeight: 20 },
+});
 
 const sec = StyleSheet.create({
   wrap: { marginTop: sp.xl },
