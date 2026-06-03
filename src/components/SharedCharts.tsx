@@ -49,7 +49,7 @@ interface StatBoxProps {
 
 export function StatBox({ label, value, color }: StatBoxProps) {
   return (
-    <View style={[sb.card, { borderColor: color + '40' }]}>
+    <View style={sb.card}>
       <Text style={[sb.value, { color }]}>{value}</Text>
       <Text style={sb.label}>{label}</Text>
     </View>
@@ -75,7 +75,8 @@ const s = StyleSheet.create({
 const sb = StyleSheet.create({
   card: {
     flex: 1, backgroundColor: colors.card, borderRadius: r.md,
-    padding: sp.sm, alignItems: 'center', gap: 3, borderWidth: 1,
+    padding: sp.sm, alignItems: 'center', gap: 3,
+    borderWidth: 1, borderColor: colors.border,
   },
   value: { fontSize: 18, fontWeight: '800' },
   label: { fontSize: 9, color: colors.textMuted, fontWeight: '600', textAlign: 'center' },
