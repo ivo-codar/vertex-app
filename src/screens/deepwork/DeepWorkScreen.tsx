@@ -7,7 +7,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, sp, r, font } from '../../theme';
-import { WorkSession, SubjectItem } from '../../types';
+import { WorkSession, SubjectItem, GradeEntry } from '../../types';
 import GradeScreen from '../grades/GradeScreen';
 import WeeklyChart from '../../components/WeeklyChart';
 import { useStore, todayDow, DEFAULT_SUBJECTS, COLOR_POOL } from '../../store';
@@ -57,30 +57,6 @@ const fmtHours = (mins: number): string => {
 
 const toHours = (mins: number) => Math.round(mins / 6) / 10;
 
-function pointsColor(p: number) {
-  if (p >= 13) return colors.accent;
-  if (p >= 10) return colors.teal;
-  if (p >= 7)  return colors.blue;
-  if (p >= 4)  return colors.amber;
-  return colors.red;
-}
-
-function pointsLabel(p: number) {
-  if (p >= 13) return 'Sehr gut';
-  if (p >= 10) return 'Gut';
-  if (p >= 7)  return 'Befriedigend';
-  if (p >= 4)  return 'Ausreichend';
-  if (p >= 1)  return 'Mangelhaft';
-  return 'Ungenügend';
-}
-
-function gradeTrend(entries: GradeEntry[]): 'up' | 'down' | 'same' {
-  if (entries.length < 2) return 'same';
-  const last = entries[0].points;
-  const prev = entries[1].points;
-  return last > prev ? 'up' : last < prev ? 'down' : 'same';
-}
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function DeepWorkScreen() {
@@ -123,11 +99,6 @@ export default function DeepWorkScreen() {
   const [showManual, setShowManual]               = useState(false);
   const [manualHours, setManualHours]             = useState('');
   const [manualSubject, setManualSubject]         = useState('');
-  const [showGrade, setShowGrade]                 = useState(false);
-  const [gradeSubject, setGradeSubject]           = useState('');
-  const [gradePoints, setGradePoints]             = useState('');
-  const [gradeLabel, setGradeLabel]               = useState('');
-  const [showGradeHistory, setShowGradeHistory]   = useState<string | null>(null);
 
   // ── Timer core ────────────────────────────────────────────────────────────
 
@@ -226,26 +197,6 @@ export default function DeepWorkScreen() {
     setManualHours(''); setManualSubject('');
     setShowManual(false);
   };
-
-  // ── Grades ────────────────────────────────────────────────────────────────
-
-  const submitGrade = () => {
-    const p = parseInt(gradePoints, 10);
-    if (isNaN(p) || p < 0 || p > 15) return;
-    setGrades(prev => [{
-      id: Date.now().toString(),
-      subject: gradeSubject || subject,
-      points: p,
-      label: gradeLabel.trim() || 'Klausur',
-      date: todayISO(),
-    }, ...prev]);
-    setGradePoints(''); setGradeLabel(''); setGradeSubject('');
-    setShowGrade(false);
-  };
-
-  const gradesBySubject = subjects
-    .map(s => ({ subject: s, entries: grades.filter(g => g.subject === s.name) }))
-    .filter(x => x.entries.length > 0);
 
   // ── Add/remove subject ────────────────────────────────────────────────────
 
@@ -462,44 +413,6 @@ export default function DeepWorkScreen() {
         <Label text="Diese Woche (Stunden)" />
         <WeeklyChart data={weekHours} color={colors.blue} unit="h" />
 
-        {/* ── Grades ── */}
-        <View style={s.gradeHeader}>
-          <Label text="Noten (Abipunkte)" />
-          <TouchableOpacity style={s.gradeAddBtn} onPress={() => { setGradeSubject(subject); setShowGrade(true); }}>
-            <Ionicons name="add" size={15} color={colors.bg} />
-          </TouchableOpacity>
-        </View>
-
-        {gradesBySubject.length === 0 ? (
-          <View style={s.gradeEmpty}>
-            <Ionicons name="star-outline" size={22} color={colors.textMuted} />
-            <Text style={s.gradeEmptyTxt}>Noch keine Noten eingetragen.</Text>
-          </View>
-        ) : (
-          gradesBySubject.map(({ subject: sub, entries }) => {
-            const avg   = entries.reduce((a, e) => a + e.points, 0) / entries.length;
-            const avgR  = Math.round(avg * 10) / 10;
-            const trend = gradeTrend(entries);
-            const color = pointsColor(avgR);
-            return (
-              <TouchableOpacity key={sub.name} style={s.gradeCard} onPress={() => setShowGradeHistory(sub.name)}>
-                <View style={[s.dot, { width: 10, height: 10, backgroundColor: sub.color }]} />
-                <Text style={[font.body, { flex: 1, fontWeight: '600' }]}>{sub.name}</Text>
-                <Text style={s.gradeCount}>{entries.length} Eintr.</Text>
-                <View style={[s.gradeBadge, { backgroundColor: color + '20' }]}>
-                  <Text style={[s.gradePts, { color }]}>{avgR} Pkt</Text>
-                  <Text style={[s.gradeLevel, { color }]}>{pointsLabel(Math.round(avgR))}</Text>
-                </View>
-                <Ionicons
-                  name={trend === 'up' ? 'trending-up' : trend === 'down' ? 'trending-down' : 'remove'}
-                  size={16}
-                  color={trend === 'up' ? colors.accent : trend === 'down' ? colors.red : colors.textMuted}
-                />
-              </TouchableOpacity>
-            );
-          })
-        )}
-
         <View style={{ height: 32 }} />
       </ScrollView>
 
@@ -616,110 +529,6 @@ export default function DeepWorkScreen() {
         <ModalBtns onCancel={() => setShowManual(false)} onSave={submitManual} />
       </SheetModal>
 
-      {/* ── Grade Entry Modal ── */}
-      <SheetModal visible={showGrade} onClose={() => setShowGrade(false)} title="Note eintragen">
-        <Text style={m.fieldLabel}>Fach</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: sp.sm, marginBottom: sp.sm }}>
-          {subjects.map(sub => (
-            <TouchableOpacity
-              key={sub.name}
-              style={[m.subChip, gradeSubject === sub.name && { backgroundColor: sub.color + '25', borderColor: sub.color }]}
-              onPress={() => setGradeSubject(sub.name)}
-            >
-              <Text style={[m.subChipTxt, gradeSubject === sub.name && { color: sub.color }]}>{sub.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-        <Text style={m.fieldLabel}>Punkte (0 – 15)</Text>
-        <View style={s.pointsGrid}>
-          {Array.from({ length: 16 }, (_, i) => i).map(p => {
-            const sel = gradePoints === String(p);
-            const c   = pointsColor(p);
-            return (
-              <TouchableOpacity key={p} style={[s.pointBtn, sel && { backgroundColor: c, borderColor: c }]} onPress={() => setGradePoints(String(p))}>
-                <Text style={[s.pointBtnTxt, sel && { color: colors.bg }]}>{p}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-        {gradePoints !== '' && (
-          <View style={s.gradePreview}>
-            <Text style={[s.gradePreviewTxt, { color: pointsColor(parseInt(gradePoints)) }]}>
-              {parseInt(gradePoints)} Punkte → {pointsLabel(parseInt(gradePoints))}
-            </Text>
-          </View>
-        )}
-        <Text style={[m.fieldLabel, { marginTop: sp.sm }]}>Bezeichnung (optional)</Text>
-        <TextInput style={m.input} placeholder="z.B. Klausur 1, Mündlich..." placeholderTextColor={colors.textMuted} value={gradeLabel} onChangeText={setGradeLabel} />
-        <ModalBtns onCancel={() => setShowGrade(false)} onSave={submitGrade} />
-      </SheetModal>
-
-      {/* ── Grade History Modal ── */}
-      <Modal visible={!!showGradeHistory} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowGradeHistory(null)}>
-        {showGradeHistory && (() => {
-          const sub     = subjects.find(s => s.name === showGradeHistory);
-          const entries = grades.filter(g => g.subject === showGradeHistory);
-          const avg     = entries.length > 0 ? entries.reduce((a, e) => a + e.points, 0) / entries.length : 0;
-          const avgR    = Math.round(avg * 10) / 10;
-          return (
-            <SafeAreaView style={s.safe} edges={['top']}>
-              <View style={s.ghHeader}>
-                <TouchableOpacity style={s.ghClose} onPress={() => setShowGradeHistory(null)}>
-                  <Ionicons name="close" size={20} color={colors.textSub} />
-                </TouchableOpacity>
-                <Text style={s.ghTitle}>{showGradeHistory}</Text>
-                {entries.length > 0 && (
-                  <View style={[s.ghAvg, { backgroundColor: pointsColor(avgR) + '20' }]}>
-                    <Text style={[s.ghAvgTxt, { color: pointsColor(avgR) }]}>Ø {avgR} Pkt</Text>
-                  </View>
-                )}
-              </View>
-              <ScrollView contentContainerStyle={{ padding: sp.md }}>
-                {/* Mini bar chart */}
-                {entries.length > 1 && (
-                  <View style={s.ghChart}>
-                    <Text style={[font.label, { marginBottom: sp.sm }]}>Entwicklung</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 6, height: 80 }}>
-                      {[...entries].reverse().map((e, i) => {
-                        const h = (e.points / 15) * 70 + 4;
-                        const c = pointsColor(e.points);
-                        const isLast = i === entries.length - 1;
-                        return (
-                          <View key={e.id} style={{ flex: 1, alignItems: 'center', gap: 3 }}>
-                            <Text style={{ fontSize: 9, fontWeight: '700', color: isLast ? c : colors.textMuted }}>{e.points}</Text>
-                            <View style={{ width: '100%', height: 70, backgroundColor: colors.bg, borderRadius: r.sm, justifyContent: 'flex-end', overflow: 'hidden', borderWidth: 1, borderColor: isLast ? c + '40' : 'transparent' }}>
-                              <View style={{ height: h, backgroundColor: isLast ? c : c + '55', borderRadius: r.sm }} />
-                            </View>
-                            <Text style={{ fontSize: 8, color: isLast ? c : colors.textMuted }}>{e.date.slice(5)}</Text>
-                          </View>
-                        );
-                      })}
-                    </View>
-                  </View>
-                )}
-                <Text style={[font.label, { marginTop: sp.lg, marginBottom: sp.sm }]}>Alle Noten</Text>
-                {entries.map(e => (
-                  <View key={e.id} style={s.ghEntry}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[font.body, { fontWeight: '600' }]}>{e.label}</Text>
-                      <Text style={font.small}>{e.date}</Text>
-                    </View>
-                    <View style={[s.gradeBadge, { backgroundColor: pointsColor(e.points) + '20' }]}>
-                      <Text style={[s.gradePts, { color: pointsColor(e.points) }]}>{e.points} Pkt</Text>
-                      <Text style={[s.gradeLevel, { color: pointsColor(e.points) }]}>{pointsLabel(e.points)}</Text>
-                    </View>
-                  </View>
-                ))}
-                <TouchableOpacity style={[s.headerBtn, { alignSelf: 'center', marginTop: sp.lg }]}
-                  onPress={() => { setGradeSubject(showGradeHistory); setShowGradeHistory(null); setShowGrade(true); }}>
-                  <Ionicons name="add" size={14} color={colors.accent} />
-                  <Text style={[s.headerBtnTxt, { color: colors.accent }]}>Note hinzufügen</Text>
-                </TouchableOpacity>
-              </ScrollView>
-            </SafeAreaView>
-          );
-        })()}
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -834,29 +643,6 @@ const s = StyleSheet.create({
   sessRow: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, backgroundColor: colors.card, borderRadius: r.md, padding: sp.md, marginBottom: sp.sm, borderWidth: 1, borderColor: colors.border },
   sessIconBtn: { padding: 4 },
 
-  gradeHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  gradeAddBtn: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', marginTop: sp.lg },
-  gradeEmpty: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, padding: sp.md, borderRadius: r.md, borderWidth: 1, borderColor: colors.border },
-  gradeEmptyTxt: { fontSize: 13, color: colors.textMuted },
-  gradeCard: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, backgroundColor: colors.card, borderRadius: r.md, padding: sp.md, marginBottom: sp.sm, borderWidth: 1, borderColor: colors.border },
-  gradeCount: { fontSize: 11, color: colors.textMuted },
-  gradeBadge: { borderRadius: r.md, padding: sp.xs, alignItems: 'center' },
-  gradePts: { fontSize: 14, fontWeight: '800' },
-  gradeLevel: { fontSize: 9, fontWeight: '600' },
-
-  pointsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: sp.sm, marginTop: sp.xs },
-  pointBtn: { width: 42, height: 42, borderRadius: r.md, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  pointBtnTxt: { fontSize: 15, fontWeight: '700', color: colors.textSub },
-  gradePreview: { marginTop: sp.sm, padding: sp.sm, borderRadius: r.md, backgroundColor: colors.card, alignItems: 'center' },
-  gradePreviewTxt: { fontSize: 14, fontWeight: '700' },
-
-  ghHeader: { flexDirection: 'row', alignItems: 'center', padding: sp.md, gap: sp.sm },
-  ghClose: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
-  ghTitle: { flex: 1, fontSize: 18, fontWeight: '700', color: colors.text },
-  ghAvg: { paddingHorizontal: sp.sm, paddingVertical: 4, borderRadius: r.full },
-  ghAvgTxt: { fontSize: 13, fontWeight: '700' },
-  ghChart: { backgroundColor: colors.card, borderRadius: r.lg, padding: sp.md, borderWidth: 1, borderColor: colors.border, marginBottom: sp.md },
-  ghEntry: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: r.md, padding: sp.md, marginBottom: sp.sm, borderWidth: 1, borderColor: colors.border },
 });
 
 // ── Manage subjects sheet ─────────────────────────────────────────────────────
