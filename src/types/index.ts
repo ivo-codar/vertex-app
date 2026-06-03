@@ -72,14 +72,14 @@ export type WorkSession = {
   duration: number; // minutes
 };
 
-export type GradeCategory = 'Schriftlich' | 'Mündlich' | 'Praktisch' | 'Test' | 'Sonstig';
+export type GradeCategory = 'Klausur' | 'Mündlich' | 'Praktisch' | 'Test' | 'Präsentation';
 
 export type CategoryWeights = {
-  Schriftlich: number;
-  Mündlich:    number;
-  Praktisch:   number;
-  Test:        number;
-  Sonstig:     number;
+  Klausur:      number;
+  Mündlich:     number;
+  Praktisch:    number;
+  Test:         number;
+  Präsentation: number;
 };
 
 export type GradeSubject = {
@@ -92,12 +92,13 @@ export type GradeSubject = {
 export type GradeEntry = {
   id: string;
   subjectId: string;
-  subject: string;         // denormalisiert für einfache Anzeige
-  points: number;          // 0-15 Abitur
+  subject: string;
+  points: number;          // 0-15
   category: GradeCategory;
-  label: string;           // z.B. "Klausur 1"
+  label: string;
   date: string;            // YYYY-MM-DD
   semester: 1 | 2 | 3 | 4;
+  weight: number;          // individuelle Gewichtung, default 1
 };
 
 // ── Projects ──────────────────────────────────────────────────────────────────

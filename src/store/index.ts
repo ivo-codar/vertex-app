@@ -28,8 +28,8 @@ export const DEFAULT_SUBJECTS: SubjectItem[] = [
 ];
 export { COLOR_POOL };
 
-const DEFAULT_WEIGHTS: CategoryWeights = { Schriftlich: 50, Mündlich: 50, Praktisch: 0, Test: 0, Sonstig: 0 };
-const SPORT_WEIGHTS:   CategoryWeights = { Schriftlich: 30, Mündlich: 0,  Praktisch: 70, Test: 0, Sonstig: 0 };
+const DEFAULT_WEIGHTS: CategoryWeights = { Klausur: 50, Mündlich: 50, Praktisch: 0, Test: 0, Präsentation: 0 };
+const SPORT_WEIGHTS:   CategoryWeights = { Klausur: 30, Mündlich: 0,  Praktisch: 70, Test: 0, Präsentation: 0 };
 
 export const DEFAULT_GRADE_SUBJECTS: GradeSubject[] = [
   { id: 'gs-de', name: 'Deutsch',     isLK: true,  weights: DEFAULT_WEIGHTS },
@@ -39,7 +39,7 @@ export const DEFAULT_GRADE_SUBJECTS: GradeSubject[] = [
   { id: 'gs-ph', name: 'Physik',      isLK: false, weights: DEFAULT_WEIGHTS },
   { id: 'gs-ge', name: 'Geschichte',  isLK: false, weights: DEFAULT_WEIGHTS },
   { id: 'gs-bi', name: 'Biologie',    isLK: false, weights: DEFAULT_WEIGHTS },
-  { id: 'gs-ku', name: 'Kunst',       isLK: false, weights: { Schriftlich: 20, Mündlich: 20, Praktisch: 60, Test: 0, Sonstig: 0 } },
+  { id: 'gs-ku', name: 'Kunst',       isLK: false, weights: { Klausur: 20, Mündlich: 20, Praktisch: 60, Test: 0, Präsentation: 0 } },
 ];
 
 export const INITIAL_BOARD: KanbanColumn[] = [
@@ -202,13 +202,28 @@ export const useStore = create<AppStore>()(
         // Always ensure grade fields exist (added in v2)
         stored.gradeSubjects  = stored.gradeSubjects  ?? DEFAULT_GRADE_SUBJECTS;
         stored.activeSemester = stored.activeSemester ?? 1;
-        // Migrate old GradeEntry (no category/semester) to new format
+        // Migrate GradeEntry and category names
+        const CAT_MAP: Record<string, string> = { 'Schriftlich': 'Klausur', 'Sonstig': 'Präsentation' };
         if (Array.isArray(stored.focusGrades)) {
           stored.focusGrades = stored.focusGrades.map((g: any) => ({
             ...g,
             subjectId: g.subjectId ?? g.id,
-            category: g.category ?? 'Sonstig',
-            semester: g.semester ?? 1,
+            category:  CAT_MAP[g.category] ?? g.category ?? 'Klausur',
+            semester:  g.semester  ?? 1,
+            weight:    g.weight    ?? 1,
+          }));
+        }
+        // Migrate subject weights keys
+        if (Array.isArray(stored.gradeSubjects)) {
+          stored.gradeSubjects = stored.gradeSubjects.map((s: any) => ({
+            ...s,
+            weights: {
+              Klausur:      s.weights?.Klausur      ?? s.weights?.Schriftlich ?? 50,
+              Mündlich:     s.weights?.Mündlich     ?? 50,
+              Praktisch:    s.weights?.Praktisch    ?? 0,
+              Test:         s.weights?.Test         ?? 0,
+              Präsentation: s.weights?.Präsentation ?? s.weights?.Sonstig ?? 0,
+            },
           }));
         }
         return stored as AppStore;
