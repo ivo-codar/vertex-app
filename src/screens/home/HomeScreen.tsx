@@ -477,15 +477,15 @@ const s = StyleSheet.create({
   calHintLink: { fontSize: 12, color: colors.textMuted },
   weekRow: { flexDirection: 'row' },
   dayCol: { flex: 1, alignItems: 'center', gap: 4 },
-  dayLabel: { fontSize: 10, fontWeight: '500', color: colors.textMuted },
+  dayLabel: { fontSize: 12, fontWeight: '600', color: colors.textMuted },
   dayLabelActive: { color: colors.accent, fontWeight: '700' },
-  dayLabelPast: { opacity: 0.4 },
-  dayCircle: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  dayLabelPast: { opacity: 0.5 },
+  dayCircle: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   dayCircleActive: { backgroundColor: colors.accent },
-  dayNum: { fontSize: 14, fontWeight: '500', color: colors.textSub },
+  dayNum: { fontSize: 15, fontWeight: '500', color: colors.textSub },
   dayNumActive: { color: colors.bg, fontWeight: '700' },
   dayNumPast: { color: colors.textMuted },
-  todayDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.accent },
+  todayDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.accent },
 
   // ── Routine cards ──────────────────────────────────────────────────────────
   routineCard: {
@@ -507,12 +507,12 @@ const s = StyleSheet.create({
   strikethru: { textDecorationLine: 'line-through', color: colors.textMuted },
   routineMeta: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, marginTop: 3, flexWrap: 'wrap' },
   timeBadge: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  timeText: { fontSize: 11, color: colors.textMuted },
+  timeText: { fontSize: 12, color: colors.textMuted },
   daysRow: { flexDirection: 'row', gap: 3 },
-  dayPip: { fontSize: 9, fontWeight: '600', color: colors.textMuted, opacity: 0.35 },
+  dayPip: { fontSize: 10, fontWeight: '600', color: colors.textMuted, opacity: 0.5 },
   dayPipActive: { color: colors.accent, opacity: 1 },
   streakPill: { flexDirection: 'row', alignItems: 'center', gap: 3, marginRight: sp.xs },
-  streakPillText: { fontSize: 12, fontWeight: '600', color: colors.amber },
+  streakPillText: { fontSize: 13, fontWeight: '600', color: colors.amber },
   iconBtn: { padding: sp.sm },
 
   // ── Event cards ────────────────────────────────────────────────────────────
@@ -527,7 +527,7 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   eventMeta: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
-  eventDate: { fontSize: 12, color: colors.textMuted },
-  tag: { paddingHorizontal: sp.sm, paddingVertical: 3, borderRadius: r.full },
-  tagText: { fontSize: 11, fontWeight: '600' },
+  eventDate: { fontSize: 13, color: colors.textSub },
+  tag: { paddingHorizontal: sp.sm, paddingVertical: 4, borderRadius: r.full },
+  tagText: { fontSize: 12, fontWeight: '600' },
 });

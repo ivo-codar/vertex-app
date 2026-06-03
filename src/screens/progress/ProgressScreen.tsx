@@ -352,8 +352,8 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   summaryItem: { flex: 1, alignItems: 'center', gap: 3 },
-  summaryVal: { fontSize: 20, fontWeight: '800' },
-  summaryLabel: { fontSize: 10, color: colors.textMuted, fontWeight: '500' },
+  summaryVal: { fontSize: 22, fontWeight: '800' },
+  summaryLabel: { fontSize: 12, color: colors.textSub, fontWeight: '500' },
   summaryDivider: { width: 1, height: 36, backgroundColor: colors.border },
 
   // ── Empty state ───────────────────────────────────────────────────────────
@@ -370,7 +370,7 @@ const s = StyleSheet.create({
     padding: sp.md, borderWidth: 1, borderColor: colors.border,
   },
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: sp.sm, flexWrap: 'wrap', gap: sp.xs },
-  cardLabel: { fontSize: 12, fontWeight: '600', color: colors.textSub, marginBottom: sp.xs },
+  cardLabel: { fontSize: 13, fontWeight: '600', color: colors.textSub, marginBottom: sp.xs },
   badgeRow: { flexDirection: 'row', gap: sp.xs },
   oneSession: { fontSize: 12, color: colors.textMuted, textAlign: 'center', paddingVertical: sp.md },
 
@@ -399,7 +399,7 @@ const s = StyleSheet.create({
   },
   completionLeft: { alignItems: 'center', minWidth: 72 },
   completionPct: { fontSize: 36, fontWeight: '800', color: colors.teal, letterSpacing: -1 },
-  completionLabel: { fontSize: 11, color: colors.textMuted, fontWeight: '500', marginTop: 2 },
+  completionLabel: { fontSize: 13, color: colors.textSub, fontWeight: '500', marginTop: 2 },
   completionStats: { flex: 1 },
   completionBar: {
     height: 6, backgroundColor: colors.card, borderRadius: r.full,

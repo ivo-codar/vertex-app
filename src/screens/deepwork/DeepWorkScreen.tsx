@@ -765,9 +765,9 @@ function ModalBtns({ onCancel, onSave }: { onCancel: () => void; onSave: () => v
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const sc = StyleSheet.create({
-  card: { flex: 1, backgroundColor: colors.card, borderRadius: r.md, padding: sp.sm, alignItems: 'center', gap: 3, borderWidth: 1, borderColor: colors.border },
-  value: { fontSize: 20, fontWeight: '800' },
-  label: { fontSize: 10, color: colors.textMuted, fontWeight: '600' },
+  card: { flex: 1, backgroundColor: colors.card, borderRadius: r.md, padding: sp.sm, alignItems: 'center', gap: 4, borderWidth: 1, borderColor: colors.border },
+  value: { fontSize: 22, fontWeight: '800' },
+  label: { fontSize: 12, color: colors.textSub, fontWeight: '600' },
 });
 
 const m = StyleSheet.create({

@@ -63,12 +63,12 @@ export default function AppNavigator() {
             paddingTop: 6,
           },
           tabBarActiveTintColor: colors.accent,
-          tabBarInactiveTintColor: colors.textMuted,
+          tabBarInactiveTintColor: colors.textSub,
           tabBarLabelStyle: {
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: '500' as const,
             marginTop: 2,
-            letterSpacing: 0.3,
+            letterSpacing: 0.2,
           },
           tabBarLabel: cfg.label,
           tabBarIcon: ({ focused, color }) => (
@@ -78,6 +78,7 @@ export default function AppNavigator() {
               color={color}
             />
           ),
+          tabBarIconStyle: { marginBottom: -2 },
         };
       }}
     >

@@ -3,59 +3,47 @@
  *
  * Batman: cold black, surgical precision, zero noise
  * Stark:  refined gold, arc-reactor blue, J.A.R.V.I.S. data readouts
- *
- * Rule: Gold earns its place. It appears only where it matters.
  */
 
 export const colors = {
   // ── Backgrounds ─────────────────────────────────────────────────────────────
-  // Cold blacks with a barely perceptible navy undertone — like the inside of
-  // the Batcave or a Stark Industries server room after dark.
-  bg:       '#06060C',   // void black
-  surface:  '#0A0A14',   // nav / tab bar
-  card:     '#0E0E1A',   // card surface
-  cardAlt:  '#121220',   // elevated / nested
-  border:   '#1A1A2E',   // hairline — barely there, like hologram grid lines
+  bg:       '#06060C',
+  surface:  '#0A0A14',
+  card:     '#0E0E1A',
+  cardAlt:  '#121220',
+  border:   '#222238',   // slightly visible — cards need edges you can find
 
   // ── Stark Gold ───────────────────────────────────────────────────────────────
-  // 18-karat, not flashy. The accent strip on the Mark III suit.
-  // Earns its place: buttons, active states, progress, checkboxes.
   accent:    '#C8960C',
-  accentDim: 'rgba(200, 150, 12, 0.13)',
+  accentDim: 'rgba(200, 150, 12, 0.14)',
 
   // ── Arc Reactor Blue ─────────────────────────────────────────────────────────
-  // The chest piece. Pure, electric, data-forward.
-  // Used for: charts, focus timer, information states.
   blue:    '#00AEEF',
-  blueDim: 'rgba(0, 174, 239, 0.12)',
+  blueDim: 'rgba(0, 174, 239, 0.13)',
 
   // ── J.A.R.V.I.S. Teal ────────────────────────────────────────────────────────
-  // The holographic interface color. Cool, precise.
   teal:    '#00C9B1',
-  tealDim: 'rgba(0, 201, 177, 0.10)',
+  tealDim: 'rgba(0, 201, 177, 0.12)',
 
   cyan:    '#00AEEF',
   cyanDim: 'rgba(0, 174, 239, 0.10)',
 
   // ── Success ───────────────────────────────────────────────────────────────────
-  // Kept subtle. Only for completion / done states.
   green:    '#1A9E5C',
-  greenDim: 'rgba(26, 158, 92, 0.10)',
+  greenDim: 'rgba(26, 158, 92, 0.12)',
 
   // ── Energy / Fire ─────────────────────────────────────────────────────────────
-  // Streak flames, repulsor charge, warnings. Warm gold-orange.
   amber:    '#E09B00',
-  amberDim: 'rgba(224, 155, 0, 0.13)',
+  amberDim: 'rgba(224, 155, 0, 0.14)',
 
   // ── Danger ────────────────────────────────────────────────────────────────────
-  // Iron Man red. Delete. Error. Alert.
   red: '#C0392B',
 
   // ── Typography ───────────────────────────────────────────────────────────────
-  // Cold, screen-precise. Like reading off a monitor in a darkened lab.
-  text:      '#EAEAF4',   // near white, slight blue cast
-  textSub:   '#68789A',   // brushed steel
-  textMuted: '#2C2C42',   // deep shadow — barely readable by design
+  // Bumped contrast significantly — no more squinting.
+  text:      '#EAEAF4',   // bright near-white
+  textSub:   '#8C9EC4',   // steel blue — clearly legible
+  textMuted: '#565680',   // muted but actually readable now
 };
 
 export const sp = {
@@ -68,7 +56,7 @@ export const sp = {
 };
 
 export const r = {
-  sm:  6,    // sharper corners — more Wayne / Stark than rounded
+  sm:  6,
   md:  10,
   lg:  14,
   xl:  18,
@@ -77,37 +65,36 @@ export const r = {
 };
 
 /**
- * Typography — precise, no fluff.
- * Numbers read like J.A.R.V.I.S. readouts.
- * No uppercase — uppercase screams "Bootstrap", not "Stark Industries".
+ * Typography — all sizes bumped +1-2px for comfortable reading distance.
+ * No uppercase. No squinting.
  */
 export const font = {
   h1: {
-    fontSize: 28, fontWeight: '800' as const,
+    fontSize: 30, fontWeight: '800' as const,
     color: colors.text, letterSpacing: -1,
   },
   h2: {
-    fontSize: 22, fontWeight: '700' as const,
+    fontSize: 24, fontWeight: '700' as const,
     color: colors.text, letterSpacing: -0.5,
   },
   h3: {
-    fontSize: 17, fontWeight: '600' as const,
+    fontSize: 19, fontWeight: '600' as const,
     color: colors.text,
   },
   body: {
-    fontSize: 15, fontWeight: '400' as const,
+    fontSize: 16, fontWeight: '400' as const,
     color: colors.text,
   },
   small: {
-    fontSize: 13, fontWeight: '400' as const,
+    fontSize: 14, fontWeight: '400' as const,
     color: colors.textSub,
   },
   label: {
-    fontSize: 11, fontWeight: '600' as const,
-    color: colors.textSub, letterSpacing: 0.5,
+    fontSize: 13, fontWeight: '600' as const,
+    color: colors.textSub, letterSpacing: 0.3,
   },
   caption: {
-    fontSize: 11, fontWeight: '500' as const,
+    fontSize: 12, fontWeight: '500' as const,
     color: colors.textMuted,
   },
 };
