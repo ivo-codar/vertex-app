@@ -7,32 +7,38 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, sp, r, font } from '../../theme';
-import { WorkSession } from '../../types';
+import { WorkSession, SubjectItem } from '../../types';
 import WeeklyChart from '../../components/WeeklyChart';
 import { useStore, todayDow, DEFAULT_SUBJECTS, COLOR_POOL } from '../../store';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type SubjectItem = { name: string; color: string };
-
 type GradeEntry = {
   id: string;
   subject: string;
-  points: number;   // 0-15 Abitur system
-  label: string;    // e.g. "Klausur 1"
-  date: string;     // YYYY-MM-DD
+  points: number;
+  label: string;
+  date: string;
 };
+
+type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const DEFAULT_SUBJECTS_LOCAL: SubjectItem[] = [
-  { name: 'Mathe',      color: colors.blue },
-  { name: 'Physik',     color: colors.amber },
-  { name: 'Informatik', color: colors.accent },
-  { name: 'Englisch',   color: colors.teal },
-  { name: 'Deutsch',    color: '#FF6B9D' },
-  { name: 'Biologie',   color: colors.green },
-]; // kept for removeSubject guard below
+const COLOR_PALETTE = [
+  '#448AFF', '#FFB300', '#00E676', '#1DE9B6',
+  '#FF6B9D', '#69F0AE', '#FF8A65', '#CE93D8',
+  '#80CBC4', '#F48FB1', '#00E5FF', '#A5D6A7',
+];
+
+const ICON_OPTIONS: IoniconName[] = [
+  'book-outline',      'calculator-outline', 'flask-outline',    'code-slash-outline',
+  'language-outline',  'leaf-outline',       'musical-notes-outline', 'fitness-outline',
+  'globe-outline',     'hammer-outline',     'pencil-outline',   'time-outline',
+  'planet-outline',    'business-outline',   'heart-outline',    'school-outline',
+  'telescope-outline', 'color-palette-outline', 'stats-chart-outline', 'trophy-outline',
+  'laptop-outline',    'mic-outline',        'camera-outline',   'cube-outline',
+];
 
 const todayISO = () => new Date().toISOString().split('T')[0];
 
@@ -104,6 +110,14 @@ export default function DeepWorkScreen() {
   // Modals
   const [showAddSubject, setShowAddSubject]       = useState(false);
   const [newSubjectName, setNewSubjectName]       = useState('');
+  const [showManageSubjects, setShowManageSubjects] = useState(false);
+  const [editSubject, setEditSubject]             = useState<SubjectItem | null>(null);
+  const [editSubName, setEditSubName]             = useState('');
+  const [editSubColor, setEditSubColor]           = useState('');
+  const [editSubIcon, setEditSubIcon]             = useState('');
+  const [editSession, setEditSession]             = useState<WorkSession | null>(null);
+  const [editSessHours, setEditSessHours]         = useState('');
+  const [editSessSubject, setEditSessSubject]     = useState('');
   const [showManual, setShowManual]               = useState(false);
   const [manualHours, setManualHours]             = useState('');
   const [manualSubject, setManualSubject]         = useState('');
@@ -241,9 +255,50 @@ export default function DeepWorkScreen() {
   };
 
   const removeSubject = (name: string) => {
-    if (DEFAULT_SUBJECTS_LOCAL.some(s => s.name === name)) return;
     setSubjects(prev => prev.filter(s => s.name !== name));
-    if (subject === name) setSubject(subjects[0]?.name ?? DEFAULT_SUBJECTS[0].name);
+    if (subject === name) setSubject(subjects.find(s => s.name !== name)?.name ?? '');
+  };
+
+  const openEditSubject = (sub: SubjectItem) => {
+    setEditSubject(sub);
+    setEditSubName(sub.name);
+    setEditSubColor(sub.color);
+    setEditSubIcon(sub.icon ?? '');
+  };
+
+  const saveEditSubject = () => {
+    if (!editSubject || !editSubName.trim()) return;
+    const oldName = editSubject.name;
+    const updated: SubjectItem = {
+      name: editSubName.trim(),
+      color: editSubColor || editSubject.color,
+      icon: editSubIcon || undefined,
+    };
+    setSubjects(prev => prev.map(s => s.name === oldName ? updated : s));
+    if (oldName !== updated.name) {
+      setSessions(prev => prev.map(s => s.subject === oldName ? { ...s, subject: updated.name } : s));
+      if (subject === oldName) setSubject(updated.name);
+    }
+    setEditSubject(null);
+  };
+
+  const deleteSession = (id: string) =>
+    setSessions(prev => prev.filter(s => s.id !== id));
+
+  const openEditSession = (sess: WorkSession) => {
+    setEditSession(sess);
+    setEditSessHours(String((Math.round(sess.duration / 6) / 10).toFixed(1)));
+    setEditSessSubject(sess.subject);
+  };
+
+  const saveEditSession = () => {
+    if (!editSession) return;
+    const h = parseFloat(editSessHours.replace(',', '.'));
+    if (isNaN(h) || h <= 0) return;
+    setSessions(prev => prev.map(s =>
+      s.id === editSession.id ? { ...s, subject: editSessSubject, duration: Math.round(h * 60) } : s
+    ));
+    setEditSession(null);
   };
 
   // ── Derived ───────────────────────────────────────────────────────────────
@@ -285,10 +340,12 @@ export default function DeepWorkScreen() {
                 key={sub.name}
                 style={[s.chip, active && { backgroundColor: sub.color + '22', borderColor: sub.color }]}
                 onPress={() => handleSubjectChange(sub.name)}
-                onLongPress={() => removeSubject(sub.name)}
                 activeOpacity={0.7}
               >
-                <View style={[s.dot, { backgroundColor: sub.color }]} />
+                {sub.icon
+                  ? <Ionicons name={sub.icon as IoniconName} size={12} color={active ? sub.color : colors.textMuted} />
+                  : <View style={[s.dot, { backgroundColor: sub.color }]} />
+                }
                 <Text style={[s.chipText, active && { color: sub.color }]}>{sub.name}</Text>
               </TouchableOpacity>
             );
@@ -297,8 +354,11 @@ export default function DeepWorkScreen() {
             <Ionicons name="add" size={14} color={colors.accent} />
             <Text style={s.addChipText}>Fach</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={s.manageChip} onPress={() => setShowManageSubjects(true)}>
+            <Ionicons name="settings-outline" size={14} color={colors.textMuted} />
+          </TouchableOpacity>
         </ScrollView>
-        <Text style={s.chipHint}>Gedrückt halten zum Löschen · Fach wechseln speichert Session</Text>
+        <Text style={s.chipHint}>Fach wechseln speichert die aktuelle Session</Text>
 
         {/* ── Timer ── */}
         <View style={s.timerCard}>
@@ -385,6 +445,12 @@ export default function DeepWorkScreen() {
                 <View style={[s.dot, { width: 10, height: 10, backgroundColor: colorMap[sess.subject] ?? colors.accent }]} />
                 <Text style={[font.body, { flex: 1, fontWeight: '500' }]}>{sess.subject}</Text>
                 <Text style={font.small}>{fmtHours(sess.duration)}</Text>
+                <TouchableOpacity style={s.sessIconBtn} onPress={() => openEditSession(sess)}>
+                  <Ionicons name="pencil" size={14} color={colors.blue} />
+                </TouchableOpacity>
+                <TouchableOpacity style={s.sessIconBtn} onPress={() => deleteSession(sess.id)}>
+                  <Ionicons name="trash-outline" size={14} color={colors.red} />
+                </TouchableOpacity>
               </View>
             ))}
           </>
@@ -434,6 +500,89 @@ export default function DeepWorkScreen() {
 
         <View style={{ height: 32 }} />
       </ScrollView>
+
+      {/* ── Manage Subjects Modal ── */}
+      <SheetModal visible={showManageSubjects} onClose={() => setShowManageSubjects(false)} title="Fächer verwalten">
+        <ScrollView style={{ maxHeight: 320 }} showsVerticalScrollIndicator={false}>
+          {subjects.map(sub => (
+            <View key={sub.name} style={mg.row}>
+              {sub.icon
+                ? <Ionicons name={sub.icon as IoniconName} size={16} color={sub.color} />
+                : <View style={[mg.dot, { backgroundColor: sub.color }]} />
+              }
+              <Text style={[mg.name, { color: sub.color }]}>{sub.name}</Text>
+              <TouchableOpacity style={mg.iconBtn} onPress={() => { openEditSubject(sub); setShowManageSubjects(false); }}>
+                <Ionicons name="pencil" size={15} color={colors.blue} />
+              </TouchableOpacity>
+              <TouchableOpacity style={mg.iconBtn} onPress={() => removeSubject(sub.name)}>
+                <Ionicons name="trash-outline" size={15} color={colors.red} />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+        <TouchableOpacity style={mg.addBtn} onPress={() => { setShowManageSubjects(false); setShowAddSubject(true); }}>
+          <Ionicons name="add" size={15} color={colors.bg} />
+          <Text style={{ color: colors.bg, fontWeight: '700', fontSize: 14 }}>Neues Fach</Text>
+        </TouchableOpacity>
+      </SheetModal>
+
+      {/* ── Edit Subject Modal ── */}
+      <SheetModal visible={!!editSubject} onClose={() => setEditSubject(null)} title="Fach bearbeiten">
+        <TextInput
+          style={m.input}
+          placeholder="Name"
+          placeholderTextColor={colors.textMuted}
+          value={editSubName}
+          onChangeText={setEditSubName}
+        />
+        <Text style={[font.label, { marginTop: sp.md, marginBottom: sp.sm }]}>Farbe</Text>
+        <View style={pk.grid}>
+          {COLOR_PALETTE.map(c => (
+            <TouchableOpacity key={c} style={[pk.colorBtn, { backgroundColor: c }, editSubColor === c && pk.colorBtnActive]} onPress={() => setEditSubColor(c)}>
+              {editSubColor === c && <Ionicons name="checkmark" size={14} color={colors.bg} />}
+            </TouchableOpacity>
+          ))}
+        </View>
+        <Text style={[font.label, { marginTop: sp.md, marginBottom: sp.sm }]}>Icon</Text>
+        <View style={pk.grid}>
+          {ICON_OPTIONS.map(icon => (
+            <TouchableOpacity
+              key={icon}
+              style={[pk.iconBtn, editSubIcon === icon && { backgroundColor: (editSubColor || colors.accent) + '30', borderColor: editSubColor || colors.accent }]}
+              onPress={() => setEditSubIcon(icon)}
+            >
+              <Ionicons name={icon} size={18} color={editSubIcon === icon ? (editSubColor || colors.accent) : colors.textMuted} />
+            </TouchableOpacity>
+          ))}
+        </View>
+        <ModalBtns onCancel={() => setEditSubject(null)} onSave={saveEditSubject} />
+      </SheetModal>
+
+      {/* ── Edit Session Modal ── */}
+      <SheetModal visible={!!editSession} onClose={() => setEditSession(null)} title="Session bearbeiten">
+        <Text style={m.fieldLabel}>Fach</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: sp.sm, marginBottom: sp.sm }}>
+          {subjects.map(sub => (
+            <TouchableOpacity
+              key={sub.name}
+              style={[m.subChip, editSessSubject === sub.name && { backgroundColor: sub.color + '25', borderColor: sub.color }]}
+              onPress={() => setEditSessSubject(sub.name)}
+            >
+              <Text style={[m.subChipTxt, editSessSubject === sub.name && { color: sub.color }]}>{sub.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+        <Text style={m.fieldLabel}>Stunden (z.B. 1.5)</Text>
+        <TextInput
+          style={m.input}
+          value={editSessHours}
+          onChangeText={setEditSessHours}
+          keyboardType="decimal-pad"
+          placeholder="z.B. 1.5"
+          placeholderTextColor={colors.textMuted}
+        />
+        <ModalBtns onCancel={() => setEditSession(null)} onSave={saveEditSession} />
+      </SheetModal>
 
       {/* ── Add Subject Modal ── */}
       <SheetModal visible={showAddSubject} onClose={() => setShowAddSubject(false)} title="Neues Fach">
@@ -652,6 +801,7 @@ const s = StyleSheet.create({
   dot: { width: 6, height: 6, borderRadius: 3 },
   addChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: sp.md, paddingVertical: 7, borderRadius: r.full, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.accent + '60' },
   addChipText: { fontSize: 13, fontWeight: '600', color: colors.accent },
+  manageChip: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   chipHint: { fontSize: 10, color: colors.textMuted, marginTop: 4 },
 
   timerCard: { backgroundColor: colors.card, borderRadius: r.xl, padding: sp.xl, marginTop: sp.md, alignItems: 'center', gap: sp.lg, borderWidth: 1, borderColor: colors.border },
@@ -673,7 +823,8 @@ const s = StyleSheet.create({
   barBg: { height: 6, backgroundColor: colors.card, borderRadius: r.full, overflow: 'hidden' },
   barFill: { height: '100%', borderRadius: r.full },
 
-  sessRow: { flexDirection: 'row', alignItems: 'center', gap: sp.md, backgroundColor: colors.card, borderRadius: r.md, padding: sp.md, marginBottom: sp.sm, borderWidth: 1, borderColor: colors.border },
+  sessRow: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, backgroundColor: colors.card, borderRadius: r.md, padding: sp.md, marginBottom: sp.sm, borderWidth: 1, borderColor: colors.border },
+  sessIconBtn: { padding: 4 },
 
   gradeHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   gradeAddBtn: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', marginTop: sp.lg },
@@ -698,4 +849,21 @@ const s = StyleSheet.create({
   ghAvgTxt: { fontSize: 13, fontWeight: '700' },
   ghChart: { backgroundColor: colors.card, borderRadius: r.lg, padding: sp.md, borderWidth: 1, borderColor: colors.border, marginBottom: sp.md },
   ghEntry: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: r.md, padding: sp.md, marginBottom: sp.sm, borderWidth: 1, borderColor: colors.border },
+});
+
+// ── Manage subjects sheet ─────────────────────────────────────────────────────
+const mg = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, paddingVertical: sp.sm, borderBottomWidth: 1, borderBottomColor: colors.border },
+  dot: { width: 10, height: 10, borderRadius: 5 },
+  name: { flex: 1, fontSize: 15, fontWeight: '500', color: colors.text },
+  iconBtn: { padding: sp.sm },
+  addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: sp.sm, backgroundColor: colors.accent, borderRadius: r.md, padding: sp.md, marginTop: sp.md },
+});
+
+// ── Color & Icon picker ───────────────────────────────────────────────────────
+const pk = StyleSheet.create({
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: sp.sm },
+  colorBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
+  colorBtnActive: { borderColor: colors.text, transform: [{ scale: 1.15 }] },
+  iconBtn: { width: 44, height: 44, borderRadius: r.md, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
 });

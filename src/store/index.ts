@@ -18,12 +18,12 @@ const COLOR_POOL = [
 ];
 
 export const DEFAULT_SUBJECTS: SubjectItem[] = [
-  { name: 'Mathe',      color: colors.blue },
-  { name: 'Physik',     color: colors.amber },
-  { name: 'Informatik', color: colors.accent },
-  { name: 'Englisch',   color: colors.teal },
-  { name: 'Deutsch',    color: '#FF6B9D' },
-  { name: 'Biologie',   color: colors.green },
+  { name: 'Mathe',      color: colors.blue,   icon: 'calculator-outline' },
+  { name: 'Physik',     color: colors.amber,  icon: 'flask-outline' },
+  { name: 'Informatik', color: colors.accent, icon: 'code-slash-outline' },
+  { name: 'Englisch',   color: colors.teal,   icon: 'language-outline' },
+  { name: 'Deutsch',    color: '#FF6B9D',     icon: 'book-outline' },
+  { name: 'Biologie',   color: colors.green,  icon: 'leaf-outline' },
 ];
 export { COLOR_POOL };
 

@@ -63,6 +63,7 @@ export type TrainingSplit = {
 export type SubjectItem = {
   name: string;
   color: string;
+  icon?: string; // optional Ionicons name
 };
 
 export type WorkSession = {
