@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Vertex",
+    "slug": "vertex",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#060D08"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.personal.vertex"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#060D08"
+      },
+      "package": "com.personal.vertex"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/icon.png",
+      "name": "Vertex",
+      "shortName": "Vertex",
+      "lang": "de",
+      "themeColor": "#060D08",
+      "backgroundColor": "#060D08",
+      "description": "Dein persönlicher Produktivitäts-Tracker"
+    },
+    "plugins": [
+      "expo-asset"
+    ]
+  }
+}
