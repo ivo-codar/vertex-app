@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -34,7 +34,38 @@ function pointsLabel(p: number) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
+// ── Alignment helpers ─────────────────────────────────────────────────────────
+
+const ALIGNMENT_MIN = -5;
+const ALIGNMENT_MAX = 8;
+const ALIGNMENT_RANGE = ALIGNMENT_MAX - ALIGNMENT_MIN;
+
+function alignmentPct(score: number): number {
+  const clamped = Math.max(ALIGNMENT_MIN, Math.min(ALIGNMENT_MAX, score));
+  return (clamped - ALIGNMENT_MIN) / ALIGNMENT_RANGE;
+}
+
+function alignmentStatus(score: number): { label: string; color: string; sub: string } {
+  if (score >=  5) return { label: 'PARAGON',      color: '#C8960C', sub: 'Maximale Disziplin. Elite-Level.' };
+  if (score >=  3) return { label: 'ELITE',         color: '#E09B00', sub: 'Herausragende Leistung.' };
+  if (score >=  1) return { label: 'ALIGNED',       color: '#00AEEF', sub: 'Kurs gehalten. Weiter so.' };
+  if (score ===  0) return { label: 'NEUTRAL',      color: '#68789A', sub: 'Kein Signal. Starte eine Session.' };
+  if (score >= -1) return { label: 'DESTABILIZED',  color: '#D4A017', sub: 'Schwacher Fokus heute.' };
+  if (score >= -3) return { label: 'COMPROMISED',   color: '#C0392B', sub: 'System unter Stress.' };
+  return              { label: 'ROGUE',             color: '#8B0000', sub: 'Kritisch. Sofortige Maßnahmen.' };
+}
+
+const TOXIN_DEF = [
+  { key: 'junkfood',     label: 'Junkfood',        icon: '🍔', desc: 'Ungesunde Ernährung' },
+  { key: 'doomScrolling', label: 'Doom-Scrolling',  icon: '📱', desc: 'Endloses Scrollen' },
+  { key: 'snooze',       label: 'Snooze',           icon: '⏰', desc: 'Alarm überdrückt' },
+] as const;
+
 export default function ProgressScreen() {
+  const alignmentScore = useStore(s => s.alignmentScore);
+  const toxins         = useStore(s => s.toxins);
+  const toggleToxin    = useStore(s => s.toggleToxin);
+
   const gymRecords    = useStore(s => s.gymRecords);
   const gymWeek       = useStore(s => s.gymWeek.data);
   const focusSessions = useStore(s => s.focusSessions);
@@ -46,6 +77,18 @@ export default function ProgressScreen() {
   const streak        = useStore(s => s.streak);
 
   const [selectedEx, setSelectedEx] = useState<string | null>(null);
+
+  // Animate bar position
+  const barAnim = useRef(new Animated.Value(alignmentPct(alignmentScore))).current;
+  useEffect(() => {
+    Animated.spring(barAnim, {
+      toValue: alignmentPct(alignmentScore),
+      useNativeDriver: false,
+      tension: 40, friction: 8,
+    }).start();
+  }, [alignmentScore]); // eslint-disable-line
+
+  const status = alignmentStatus(alignmentScore);
 
   const activeEx  = selectedEx ?? gymRecords[0]?.name ?? null;
   const exRecord  = gymRecords.find(r => r.name === activeEx);
@@ -91,6 +134,98 @@ export default function ProgressScreen() {
           <Text style={s.kicker}>System Intelligence</Text>
           <Text style={font.h2}>Progress</Text>
           <Text style={s.headerSub}>Live-Daten aus allen Bereichen</Text>
+        </View>
+
+        {/* ══════════ ALIGNMENT METER ══════════ */}
+        <View style={al.card}>
+          {/* Header */}
+          <View style={al.header}>
+            <View>
+              <Text style={al.title}>ALIGNMENT METER</Text>
+              <Text style={al.subtitle}>O.R.A.C.L.E. DAILY ASSESSMENT</Text>
+            </View>
+            <View style={[al.statusBadge, { backgroundColor: status.color + '20' }]}>
+              <Text style={[al.statusLabel, { color: status.color }]}>{status.label}</Text>
+            </View>
+          </View>
+
+          {/* Score */}
+          <Text style={[al.scoreNum, { color: status.color }]}>
+            {alignmentScore >= 0 ? '+' : ''}{alignmentScore}
+          </Text>
+          <Text style={al.scoreSub}>{status.sub}</Text>
+
+          {/* Bar */}
+          <View style={al.barWrap}>
+            <Text style={al.barLabelLeft}>ROGUE</Text>
+            <View style={al.track}>
+              {/* Negative fill (center → left) */}
+              <View style={al.negHalf}>
+                {alignmentScore < 0 && (
+                  <View style={[al.negFill, {
+                    width: `${Math.min(100, Math.abs(alignmentScore) / Math.abs(ALIGNMENT_MIN) * 100)}%`,
+                  }]} />
+                )}
+              </View>
+              {/* Center divider */}
+              <View style={al.centerLine} />
+              {/* Positive fill (center → right) */}
+              <View style={al.posHalf}>
+                {alignmentScore > 0 && (
+                  <View style={[al.posFill, {
+                    width: `${Math.min(100, alignmentScore / ALIGNMENT_MAX * 100)}%`,
+                  }]} />
+                )}
+              </View>
+            </View>
+            <Text style={al.barLabelRight}>PARAGON</Text>
+          </View>
+
+          {/* Legend */}
+          <View style={al.legend}>
+            <View style={al.legendItem}>
+              <View style={[al.legendDot, { backgroundColor: colors.accent }]} />
+              <Text style={al.legendTxt}>Gym +1 · Focus +1 · Omega +2</Text>
+            </View>
+            <View style={al.legendItem}>
+              <View style={[al.legendDot, { backgroundColor: colors.red }]} />
+              <Text style={al.legendTxt}>Toxin −1 je Check</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* ══════════ TOXIN CHECK-IN ══════════ */}
+        <View style={[al.card, al.toxinCard]}>
+          <View style={al.toxinHeader}>
+            <Ionicons name="nuclear" size={14} color={colors.red} />
+            <Text style={al.toxinTitle}>SYSTEM QUERY</Text>
+            <Ionicons name="nuclear" size={14} color={colors.red} />
+          </View>
+          <Text style={al.toxinQuestion}>WERE TOXINS CONSUMED TODAY?</Text>
+
+          {TOXIN_DEF.map(({ key, label, icon, desc }) => {
+            const checked = toxins[key];
+            return (
+              <TouchableOpacity
+                key={key}
+                style={[al.toxinRow, checked && al.toxinRowActive]}
+                onPress={() => toggleToxin(key)}
+                activeOpacity={0.8}
+              >
+                <Text style={al.toxinIcon}>{icon}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={[al.toxinLabel, checked && { color: colors.red }]}>{label}</Text>
+                  <Text style={al.toxinDesc}>{desc}</Text>
+                </View>
+                <View style={[al.toxinCheck, checked && al.toxinCheckDone]}>
+                  {checked && <Ionicons name="checkmark" size={12} color={colors.bg} />}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+          <Text style={al.toxinNote}>
+            Jeder Haken zieht −1 vom Alignment Score
+          </Text>
         </View>
 
         {/* ── Top Streak + Summary ── */}
@@ -410,4 +545,71 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: colors.border,
   },
   completionBarFill: { height: '100%', backgroundColor: colors.teal, borderRadius: r.full },
+});
+
+// ── Alignment Meter styles ────────────────────────────────────────────────────
+const al = StyleSheet.create({
+  card: {
+    backgroundColor: colors.card, borderRadius: r.lg,
+    padding: sp.md, borderWidth: 1, borderColor: colors.border,
+    marginBottom: sp.md,
+  },
+  toxinCard: { borderColor: 'rgba(192,57,43,0.35)' },
+
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: sp.sm },
+  title:  { fontSize: 11, fontWeight: '800', color: colors.textSub, letterSpacing: 1.5 },
+  subtitle: { fontSize: 10, color: colors.textMuted, marginTop: 2, letterSpacing: 0.5 },
+  statusBadge: { paddingHorizontal: sp.sm, paddingVertical: 4, borderRadius: r.sm },
+  statusLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+
+  scoreNum: { fontSize: 40, fontWeight: '900', letterSpacing: -2, textAlign: 'center', marginVertical: sp.xs },
+  scoreSub: { fontSize: 12, color: colors.textMuted, textAlign: 'center', marginBottom: sp.md },
+
+  // ── Horizontal bar ──────────────────────────────────────────────────────────
+  barWrap: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, marginBottom: sp.md },
+  barLabelLeft:  { fontSize: 9, fontWeight: '800', color: '#8B0000',    letterSpacing: 0.5, width: 38 },
+  barLabelRight: { fontSize: 9, fontWeight: '800', color: colors.accent, letterSpacing: 0.5, width: 48, textAlign: 'right' },
+  track: {
+    flex: 1, height: 12, flexDirection: 'row',
+    backgroundColor: colors.bg, borderRadius: r.full,
+    overflow: 'hidden', borderWidth: 1, borderColor: colors.border,
+  },
+  negHalf: {
+    flex: 1, flexDirection: 'row', justifyContent: 'flex-end',
+    overflow: 'hidden',
+  },
+  negFill: { height: '100%', backgroundColor: '#C0392B', borderRadius: r.full },
+  centerLine: { width: 2, backgroundColor: colors.textMuted, opacity: 0.4 },
+  posHalf: { flex: 1, overflow: 'hidden' },
+  posFill: { height: '100%', backgroundColor: colors.accent, borderRadius: r.full },
+
+  legend: { flexDirection: 'row', gap: sp.lg, justifyContent: 'center' },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  legendDot: { width: 6, height: 6, borderRadius: 3 },
+  legendTxt: { fontSize: 11, color: colors.textMuted },
+
+  // ── Toxin check-in ──────────────────────────────────────────────────────────
+  toxinHeader: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, justifyContent: 'center', marginBottom: sp.xs },
+  toxinTitle: { fontSize: 11, fontWeight: '800', color: colors.red, letterSpacing: 2 },
+  toxinQuestion: {
+    fontSize: 13, fontWeight: '700', color: colors.text,
+    textAlign: 'center', marginBottom: sp.md, letterSpacing: 0.3,
+  },
+  toxinRow: {
+    flexDirection: 'row', alignItems: 'center', gap: sp.md,
+    backgroundColor: colors.bg, borderRadius: r.md,
+    padding: sp.md, marginBottom: sp.sm,
+    borderWidth: 1, borderColor: colors.border,
+  },
+  toxinRowActive: { borderColor: 'rgba(192,57,43,0.6)', backgroundColor: 'rgba(192,57,43,0.06)' },
+  toxinIcon: { fontSize: 22 },
+  toxinLabel: { fontSize: 14, fontWeight: '600', color: colors.text },
+  toxinDesc: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
+  toxinCheck: {
+    width: 22, height: 22, borderRadius: r.sm,
+    borderWidth: 1.5, borderColor: colors.border,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  toxinCheckDone: { backgroundColor: colors.red, borderColor: colors.red },
+  toxinNote: { fontSize: 11, color: colors.textMuted, textAlign: 'center', marginTop: sp.xs },
 });

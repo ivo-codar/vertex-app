@@ -51,6 +51,7 @@ export default function ProjectsScreen() {
   const [newDoubleDown, setNewDoubleDown] = useState(false);
   const [showDDWarning, setShowDDWarning] = useState(false);
   const [targetColId, setTargetColId] = useState('todo');
+  const addAlignment = useStore(s => s.addAlignment);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [newSubtask, setNewSubtask] = useState('');
 
@@ -60,6 +61,7 @@ export default function ProjectsScreen() {
       if (toId === 'done') {
         const pts = (card.effort ?? 1) * (card.doubleDown ? 2 : 1);
         addToWeek('projectsWeek', todayDow(), pts);
+        if (card.threat === 'omega') addAlignment(2); // OMEGA NEUTRALIZED → +2 ALIGNMENT
       }
       return prev.map(col => {
         if (col.id === fromId) return { ...col, cards: col.cards.filter(c => c.id !== cardId) };

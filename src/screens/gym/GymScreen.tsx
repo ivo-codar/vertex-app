@@ -44,7 +44,8 @@ export default function GymScreen() {
   const records  = useStore(s => s.gymRecords);
   const weekData = useStore(s => s.gymWeek.data);
   const update   = useStore(s => s.update);
-  const addToWeek = useStore(s => s.addToWeek);
+  const addToWeek    = useStore(s => s.addToWeek);
+  const addAlignment = useStore(s => s.addAlignment);
 
   const setSplits  = (fn: TrainingSplit[] | ((p: TrainingSplit[]) => TrainingSplit[])) =>
     update(s => ({ gymSplits: typeof fn === 'function' ? fn(s.gymSplits) : fn }));
@@ -255,6 +256,7 @@ export default function GymScreen() {
     });
 
     addToWeek('gymWeek', todayDow(), totalSets);
+    if (totalSets > 0) addAlignment(1); // GYM SESSION → +1 ALIGNMENT
     setWorkout(null);
   };
 

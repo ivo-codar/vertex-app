@@ -76,6 +76,10 @@ interface State {
   // Projects
   projectsBoard: KanbanColumn[];
   projectsWeek: WeekData;
+  // Alignment Meter
+  alignmentScore: number;    // daily discipline score
+  alignmentDate: string;     // YYYY-MM-DD — resets each day
+  toxins: { junkfood: boolean; doomScrolling: boolean; snooze: boolean };
 }
 
 interface Actions {
@@ -87,6 +91,10 @@ interface Actions {
   checkResets: () => void;
   /** Add a custom focus subject with auto-assigned color. */
   addSubject: (name: string) => void;
+  /** Adjust the daily alignment score (+/−). */
+  addAlignment: (delta: number) => void;
+  /** Toggle a single toxin — automatically applies ±1 to alignment. */
+  toggleToxin: (key: 'junkfood' | 'doomScrolling' | 'snooze') => void;
 }
 
 export type AppStore = State & Actions;
@@ -117,6 +125,9 @@ export const useStore = create<AppStore>()(
       focusGrades: [],
       projectsBoard: INITIAL_BOARD,
       projectsWeek: emptyWeek(),
+      alignmentScore: 0,
+      alignmentDate: '',
+      toxins: { junkfood: false, doomScrolling: false, snooze: false },
 
       // ── Actions ────────────────────────────────────────────────────────────
 
@@ -166,6 +177,14 @@ export const useStore = create<AppStore>()(
 
         // completedDates-based routines don't need daily reset
 
+        // ── Alignment Meter daily reset ──────────────────────────────────────
+        const todayISO = today.toISOString().split('T')[0];
+        if (state.alignmentDate && state.alignmentDate !== todayISO) {
+          updates.alignmentScore = 0;
+          updates.alignmentDate  = '';
+          updates.toxins         = { junkfood: false, doomScrolling: false, snooze: false };
+        }
+
         // ── Double Down penalty ──────────────────────────────────────────────
         // Any card still NOT in "done" with doubleDownDate = yesterday → subtract effort
         const yesterdayISO = (() => {
@@ -195,6 +214,28 @@ export const useStore = create<AppStore>()(
         if (Object.keys(updates).length > 0) {
           set(state => ({ ...state, ...updates }));
         }
+      },
+
+      addAlignment: (delta) => {
+        const today = new Date().toISOString().split('T')[0];
+        set(state => ({
+          ...state,
+          alignmentScore: state.alignmentScore + delta,
+          alignmentDate: today,
+        }));
+      },
+
+      toggleToxin: (key) => {
+        const state = get();
+        const wasOn = state.toxins[key];
+        const delta = wasOn ? +1 : -1; // unchecking removes penalty, checking adds it
+        const today = new Date().toISOString().split('T')[0];
+        set(s => ({
+          ...s,
+          toxins: { ...s.toxins, [key]: !wasOn },
+          alignmentScore: s.alignmentScore + delta,
+          alignmentDate: today,
+        }));
       },
 
       addSubject: (name) => {

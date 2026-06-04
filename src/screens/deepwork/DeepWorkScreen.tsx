@@ -66,8 +66,9 @@ export default function DeepWorkScreen() {
   const weekData  = useStore(s => s.focusWeek.data);
   const grades    = useStore(s => s.focusGrades);
   const update    = useStore(s => s.update);
-  const addToWeek = useStore(s => s.addToWeek);
+  const addToWeek    = useStore(s => s.addToWeek);
   const storeAddSubject = useStore(s => s.addSubject);
+  const addAlignment = useStore(s => s.addAlignment);
 
   const setSubjects = (fn: SubjectItem[] | ((p: SubjectItem[]) => SubjectItem[])) =>
     update(s => ({ focusSubjects: typeof fn === 'function' ? fn(s.focusSubjects) : fn }));
@@ -156,6 +157,7 @@ export default function DeepWorkScreen() {
     if (mins < 1) return;
     setSessions(prev => [{ id: Date.now().toString(), subject: subjectName, duration: mins }, ...prev]);
     addToWeek('focusWeek', todayDow(), mins);
+    addAlignment(1); // FOCUS SESSION → +1 ALIGNMENT
   };
 
   const handleStop = () => {
