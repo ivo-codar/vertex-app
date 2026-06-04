@@ -55,8 +55,9 @@ export default function GymScreen() {
   const [workout, setWorkout]     = useState<ActiveWorkout | null>(null);
 
   // Modals
-  const [showCreateSplit, setShowCreateSplit] = useState(false);
-  const [editingSplitDay, setEditingSplitDay] = useState<{ splitId: string; day: SplitDay } | null>(null);
+  const [showCreateSplit, setShowCreateSplit]   = useState(false);
+  const [showFinishConfirm, setShowFinishConfirm] = useState(false);
+  const [editingSplitDay, setEditingSplitDay]   = useState<{ splitId: string; day: SplitDay } | null>(null);
   const [editDayName, setEditDayName]         = useState('');
   const [editDayExInput, setEditDayExInput]   = useState('');
   const [editDayExercises, setEditDayExercises] = useState<string[]>([]);
@@ -257,11 +258,7 @@ export default function GymScreen() {
     setWorkout(null);
   };
 
-  const confirmFinish = () =>
-    Alert.alert('Workout beenden', 'Alle erledigten Sätze werden gespeichert.', [
-      { text: 'Abbrechen', style: 'cancel' },
-      { text: 'Beenden', onPress: finishWorkout },
-    ]);
+  const confirmFinish = () => setShowFinishConfirm(true);
 
   // ── Last session max weight for a given exercise ──────────────────────────
   const lastMax = (name: string): number | null => {
@@ -308,9 +305,22 @@ export default function GymScreen() {
               <View key={split.id} style={s.splitCard}>
                 <View style={s.splitHeader}>
                   <Text style={s.splitName}>{split.name}</Text>
-                  <TouchableOpacity onPress={() => setSplits(p => p.filter(sp => sp.id !== split.id))}>
-                    <Ionicons name="trash-outline" size={15} color={colors.textMuted} />
-                  </TouchableOpacity>
+                  <View style={{ flexDirection: 'row', gap: sp.sm, alignItems: 'center' }}>
+                    <TouchableOpacity
+                      style={s.addDayBtn}
+                      onPress={() => {
+                        const newDay: SplitDay = { id: `d-${Date.now()}`, name: `Tag ${String.fromCharCode(65 + split.days.length)}`, exercises: [] };
+                        setSplits(p => p.map(sp => sp.id === split.id ? { ...sp, days: [...sp.days, newDay] } : sp));
+                        openEditSplitDay(split.id, newDay);
+                      }}
+                    >
+                      <Ionicons name="add" size={14} color={colors.accent} />
+                      <Text style={s.addDayTxt}>Tag</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => setSplits(p => p.filter(sp => sp.id !== split.id))}>
+                      <Ionicons name="trash-outline" size={15} color={colors.textMuted} />
+                    </TouchableOpacity>
+                  </View>
                 </View>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.dayChips}>
                   {split.days.map(day => {
@@ -621,6 +631,24 @@ export default function GymScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
+      {/* ── Finish Workout Confirm Modal ── */}
+      <Modal visible={showFinishConfirm} transparent animationType="fade" onRequestClose={() => setShowFinishConfirm(false)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center', padding: sp.xl }}>
+          <View style={{ backgroundColor: colors.surface, borderRadius: r.xl, padding: sp.xl, borderWidth: 1, borderColor: colors.border, width: '100%' }}>
+            <Text style={{ ...font.h3, marginBottom: sp.sm }}>Workout beenden?</Text>
+            <Text style={{ ...font.small, marginBottom: sp.lg }}>Alle abgehakten Sätze werden gespeichert.</Text>
+            <View style={{ flexDirection: 'row', gap: sp.sm }}>
+              <TouchableOpacity style={[m.btnCancel, { flex: 1 }]} onPress={() => setShowFinishConfirm(false)}>
+                <Text style={{ color: colors.textSub }}>Abbrechen</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[m.btnSave, { flex: 1 }]} onPress={() => { setShowFinishConfirm(false); finishWorkout(); }}>
+                <Text style={{ color: colors.bg, fontWeight: '700' }}>Beenden & Speichern</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* ── Edit Split Day Modal ── */}
       <Modal visible={!!editingSplitDay} transparent animationType="slide" onRequestClose={() => setEditingSplitDay(null)}>
         <KeyboardAvoidingView style={m.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -695,7 +723,13 @@ export default function GymScreen() {
 
       {/* ── Exercise History Modal ── */}
       <Modal visible={!!showHistory} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowHistory(null)}>
-        {showHistory && <ExerciseHistorySheet record={showHistory} onClose={() => setShowHistory(null)} />}
+        {showHistory && <ExerciseHistorySheet record={showHistory} onClose={() => setShowHistory(null)} onLogEntry={(entry) => {
+          setRecords(prev => {
+            const idx = prev.findIndex(r => r.id === showHistory!.id);
+            if (idx >= 0) return prev.map((r, i) => i === idx ? { ...r, entries: [entry, ...r.entries] } : r);
+            return prev;
+          });
+        }} />}
       </Modal>
     </SafeAreaView>
   );
@@ -703,10 +737,35 @@ export default function GymScreen() {
 
 // ── Exercise History Sheet ────────────────────────────────────────────────────
 
-function ExerciseHistorySheet({ record, onClose }: { record: ExerciseRecord; onClose: () => void }) {
+function ExerciseHistorySheet({ record, onClose, onLogEntry }: {
+  record: ExerciseRecord; onClose: () => void;
+  onLogEntry?: (entry: ExerciseEntry) => void;
+}) {
   const prog = getProgress(record);
   const weights = record.entries.map(e => e.maxWeight).reverse();
-  const labels  = record.entries.map(e => e.date.slice(5)).reverse(); // MM-DD
+  const labels  = record.entries.map(e => e.date.slice(5)).reverse();
+
+  // Quick log state
+  const [showLog, setShowLog]   = useState(false);
+  const [logW, setLogW]         = useState('');
+  const [logS, setLogS]         = useState('');
+  const [logR, setLogR]         = useState('');
+  const lastEntry = record.entries[0];
+
+  const quickLog = () => {
+    if (!logW || !logS || !logR) return;
+    const sets: SetEntry[] = Array.from({ length: Number(logS) }, (_, i) => ({
+      id: `ql-${Date.now()}-${i}`, weight: Number(logW), reps: Number(logR),
+    }));
+    const entry: ExerciseEntry = {
+      id: `ql-${Date.now()}`,
+      date: new Date().toISOString().split('T')[0],
+      sets, maxWeight: Number(logW),
+    };
+    onLogEntry?.(entry);
+    setLogW(''); setLogS(''); setLogR('');
+    setShowLog(false);
+  };
 
   return (
     <SafeAreaView style={hs.safe} edges={['top']}>
@@ -757,6 +816,41 @@ function ExerciseHistorySheet({ record, onClose }: { record: ExerciseRecord; onC
             ))}
           </View>
         ))}
+
+        {/* Quick log section */}
+        {!showLog ? (
+          <TouchableOpacity style={hs.logTrigger} onPress={() => setShowLog(true)}>
+            <Ionicons name="add-circle" size={16} color={colors.accent} />
+            <Text style={hs.logTriggerTxt}>Eintrag hinzufügen</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={hs.logForm}>
+            <Text style={[font.label, { marginBottom: sp.sm }]}>Neuer Eintrag</Text>
+            <View style={{ flexDirection: 'row', gap: sp.sm, marginBottom: sp.sm }}>
+              <View style={{ flex: 1 }}>
+                <Text style={font.caption}>Gewicht kg</Text>
+                <TextInput style={hs.logInput} value={logW} onChangeText={setLogW} placeholder={lastEntry ? String(lastEntry.maxWeight) : '0'} placeholderTextColor={colors.textMuted} keyboardType="decimal-pad" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={font.caption}>Sätze</Text>
+                <TextInput style={hs.logInput} value={logS} onChangeText={setLogS} placeholder="4" placeholderTextColor={colors.textMuted} keyboardType="decimal-pad" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={font.caption}>Wdh</Text>
+                <TextInput style={hs.logInput} value={logR} onChangeText={setLogR} placeholder="8" placeholderTextColor={colors.textMuted} keyboardType="decimal-pad" />
+              </View>
+            </View>
+            <View style={{ flexDirection: 'row', gap: sp.sm }}>
+              <TouchableOpacity style={[m.btnCancel, { flex: 1 }]} onPress={() => setShowLog(false)}>
+                <Text style={{ color: colors.textSub }}>Abbrechen</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[m.btnSave, { flex: 1 }]} onPress={quickLog}>
+                <Text style={{ color: colors.bg, fontWeight: '700' }}>Speichern</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+        <View style={{ height: 24 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -787,6 +881,10 @@ const hs = StyleSheet.create({
   setRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, borderTopWidth: 1, borderTopColor: colors.border },
   setLabel: { fontSize: 12, color: colors.textMuted },
   setVal: { fontSize: 12, fontWeight: '600', color: colors.text },
+  logTrigger: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, padding: sp.md, marginHorizontal: sp.md, borderRadius: r.md, borderWidth: 1, borderColor: colors.accent + '50', justifyContent: 'center', marginTop: sp.sm },
+  logTriggerTxt: { fontSize: 14, fontWeight: '600', color: colors.accent },
+  logForm: { margin: sp.md, backgroundColor: colors.card, borderRadius: r.lg, padding: sp.md, borderWidth: 1, borderColor: colors.border },
+  logInput: { backgroundColor: colors.bg, borderRadius: r.sm, padding: sp.sm, color: colors.text, fontSize: 15, fontWeight: '600', textAlign: 'center', borderWidth: 1, borderColor: colors.border, marginTop: 3 },
 });
 
 const m = StyleSheet.create({
@@ -827,6 +925,8 @@ const s = StyleSheet.create({
 
   splitCard: { ...fx.card, borderRadius: r.xl, padding: sp.md, marginTop: sp.sm },
   splitHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: sp.sm },
+  addDayBtn: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: sp.sm, paddingVertical: 4, borderRadius: r.full, borderWidth: 1, borderColor: colors.accent + '60', backgroundColor: colors.accentDim },
+  addDayTxt: { fontSize: 11, fontWeight: '700', color: colors.accent },
   splitName: { fontSize: 15, fontWeight: '700', color: colors.text },
   dayChips: { gap: sp.sm, paddingRight: sp.sm },
   dayChipWrap: { alignItems: 'center', gap: 3 },

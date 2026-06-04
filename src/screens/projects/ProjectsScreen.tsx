@@ -44,6 +44,8 @@ export default function ProjectsScreen() {
     update(s => ({ projectsBoard: typeof fn === 'function' ? fn(s.projectsBoard) : fn }));
 
   const [showModal, setShowModal]   = useState(false);
+  const [editingCardId, setEditingCardId] = useState<string | null>(null);
+  const [editingCardColId, setEditingCardColId] = useState<string | null>(null);
   const [newTitle, setNewTitle]     = useState('');
   const [newTag, setNewTag]         = useState('');
   const [newPriority, setNewPriority] = useState<KanbanCard['priority']>('medium');
@@ -92,23 +94,47 @@ export default function ProjectsScreen() {
     setNewSubtask('');
   };
 
+  const openEditCard = (card: KanbanCard, colId: string) => {
+    setEditingCardId(card.id);
+    setEditingCardColId(colId);
+    setNewTitle(card.title);
+    setNewTag(card.tags[0] ?? '');
+    setNewPriority(card.priority);
+    setNewEffort(card.effort ?? 1);
+    setTargetColId(colId);
+    setShowModal(true);
+  };
+
   const addCard = () => {
     if (!newTitle.trim()) return;
-    const card: KanbanCard = {
-      id: Date.now().toString(),
-      title: newTitle.trim(),
-      tags: newTag.trim() ? [newTag.trim()] : [],
-      priority: newPriority,
-      effort: newEffort,
-      subtasks: [],
-    };
-    setBoard(prev => prev.map(col =>
-      col.id === targetColId ? { ...col, cards: [card, ...col.cards] } : col
-    ));
+    if (editingCardId) {
+      // Edit existing
+      setBoard(prev => prev.map(col => ({
+        ...col,
+        cards: col.cards.map(c => c.id === editingCardId
+          ? { ...c, title: newTitle.trim(), tags: newTag.trim() ? [newTag.trim()] : [], priority: newPriority, effort: newEffort }
+          : c
+        ),
+      })));
+    } else {
+      const card: KanbanCard = {
+        id: Date.now().toString(),
+        title: newTitle.trim(),
+        tags: newTag.trim() ? [newTag.trim()] : [],
+        priority: newPriority,
+        effort: newEffort,
+        subtasks: [],
+      };
+      setBoard(prev => prev.map(col =>
+        col.id === targetColId ? { ...col, cards: [card, ...col.cards] } : col
+      ));
+    }
     setNewTitle('');
     setNewTag('');
     setNewPriority('medium');
     setNewEffort(1);
+    setEditingCardId(null);
+    setEditingCardColId(null);
     setShowModal(false);
   };
 
@@ -167,6 +193,7 @@ export default function ProjectsScreen() {
                   totalCols={board.length}
                   onMove={moveCard}
                   onDelete={deleteCard}
+                  onEdit={() => openEditCard(card, col.id)}
                   expanded={expandedCard === card.id}
                   onToggleExpand={() => setExpandedCard(prev => prev === card.id ? null : card.id)}
                   onToggleSubtask={(subId) => toggleSubtask(card.id, col.id, subId)}
@@ -201,7 +228,7 @@ export default function ProjectsScreen() {
         <KeyboardAvoidingView style={m.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <TouchableOpacity style={m.overlay} activeOpacity={1} onPress={() => setShowModal(false)} />
           <View style={m.sheet}>
-            <Text style={m.sheetTitle}>Task hinzufügen</Text>
+            <Text style={m.sheetTitle}>{editingCardId ? 'Task bearbeiten' : 'Task hinzufügen'}</Text>
 
             <TextInput
               style={m.input}
@@ -235,7 +262,7 @@ export default function ProjectsScreen() {
               ))}
             </View>
 
-            <Text style={[font.label, { marginTop: sp.md, marginBottom: sp.sm }]}>Aufwand (Story Points)</Text>
+            <Text style={[font.label, { marginTop: sp.md, marginBottom: sp.sm }]}>Aufwand</Text>
             <View style={{ flexDirection: 'row', gap: sp.sm }}>
               {([1, 2, 3, 5, 8] as const).map(pts => (
                 <TouchableOpacity
@@ -264,7 +291,7 @@ export default function ProjectsScreen() {
             </View>
 
             <View style={m.btns}>
-              <TouchableOpacity style={m.btnCancel} onPress={() => setShowModal(false)}>
+              <TouchableOpacity style={m.btnCancel} onPress={() => { setShowModal(false); setEditingCardId(null); }}>
                 <Text style={{ color: colors.textSub }}>Abbrechen</Text>
               </TouchableOpacity>
               <TouchableOpacity style={m.btnSave} onPress={addCard}>
@@ -279,12 +306,13 @@ export default function ProjectsScreen() {
 }
 
 function KanbanCardView({
-  card, colId, colIdx, totalCols, onMove, onDelete,
+  card, colId, colIdx, totalCols, onMove, onDelete, onEdit,
   expanded, onToggleExpand, onToggleSubtask, newSubtask, onSubtaskChange, onAddSubtask,
 }: {
   card: KanbanCard; colId: string; colIdx: number; totalCols: number;
   onMove: (id: string, from: string, to: string) => void;
   onDelete: (id: string, colId: string) => void;
+  onEdit: () => void;
   expanded: boolean; onToggleExpand: () => void;
   onToggleSubtask: (subId: string) => void;
   newSubtask: string; onSubtaskChange: (v: string) => void;
@@ -308,6 +336,9 @@ function KanbanCardView({
               <Ionicons name="arrow-forward" size={12} color={colors.accent} />
             </TouchableOpacity>
           )}
+          <TouchableOpacity style={cs.arrow} onPress={onEdit}>
+            <Ionicons name="pencil" size={11} color={colors.blue} />
+          </TouchableOpacity>
           <TouchableOpacity style={cs.arrow} onPress={() => onDelete(card.id, colId)}>
             <Ionicons name="close" size={12} color={colors.red} />
           </TouchableOpacity>
@@ -348,7 +379,7 @@ function KanbanCardView({
               style={cs.stInput}
               value={newSubtask}
               onChangeText={onSubtaskChange}
-              placeholder="Sub-Aufgabe hinzufügen..."
+              placeholder="Teilaufgabe hinzufügen..."
               placeholderTextColor={colors.textMuted}
               onSubmitEditing={onAddSubtask}
               returnKeyType="done"
