@@ -1,26 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  Modal,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet,
+  Modal, TextInput, KeyboardAvoidingView, Platform, Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, sp, r, font, fx } from '../../theme';
-import { KanbanColumn, KanbanCard } from '../../types';
+import { KanbanColumn, KanbanCard, ThreatLevel } from '../../types';
 import WeeklyChart from '../../components/WeeklyChart';
 import { useStore, todayDow, INITIAL_BOARD } from '../../store';
 
-const PRIORITY_COLOR = {
-  low:    colors.textMuted,
-  medium: colors.amber,
-  high:   colors.red,
+// ── Threat Level config ───────────────────────────────────────────────────────
+
+type ThreatCfg = { label: string; color: string; bg: string; icon: React.ComponentProps<typeof Ionicons>['name'] };
+
+const THREAT: Record<ThreatLevel, ThreatCfg> = {
+  gamma: { label: 'GAMMA', color: '#5C5C7A', bg: 'rgba(92,92,122,0.12)',   icon: 'remove-circle-outline' },
+  beta:  { label: 'BETA',  color: '#00AEEF', bg: 'rgba(0,174,239,0.12)',   icon: 'chevron-up-circle-outline' },
+  alpha: { label: 'ALPHA', color: '#E09B00', bg: 'rgba(224,155,0,0.14)',   icon: 'alert-circle-outline' },
+  omega: { label: 'OMEGA', color: '#C0392B', bg: 'rgba(192,57,43,0.15)',   icon: 'nuclear-outline' },
 };
 
 const COL_COLOR: Record<string, string> = {
@@ -48,7 +46,7 @@ export default function ProjectsScreen() {
   const [editingCardColId, setEditingCardColId] = useState<string | null>(null);
   const [newTitle, setNewTitle]     = useState('');
   const [newTag, setNewTag]         = useState('');
-  const [newPriority, setNewPriority] = useState<KanbanCard['priority']>('medium');
+  const [newThreat, setNewThreat] = useState<ThreatLevel>('beta');
   const [newEffort, setNewEffort]   = useState<1|2|3|5|8>(1);
   const [targetColId, setTargetColId] = useState('todo');
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -99,7 +97,7 @@ export default function ProjectsScreen() {
     setEditingCardColId(colId);
     setNewTitle(card.title);
     setNewTag(card.tags[0] ?? '');
-    setNewPriority(card.priority);
+    setNewThreat(card.threat ?? 'beta');
     setNewEffort(card.effort ?? 1);
     setTargetColId(colId);
     setShowModal(true);
@@ -112,7 +110,7 @@ export default function ProjectsScreen() {
       setBoard(prev => prev.map(col => ({
         ...col,
         cards: col.cards.map(c => c.id === editingCardId
-          ? { ...c, title: newTitle.trim(), tags: newTag.trim() ? [newTag.trim()] : [], priority: newPriority, effort: newEffort }
+          ? { ...c, title: newTitle.trim(), tags: newTag.trim() ? [newTag.trim()] : [], threat: newThreat, effort: newEffort }
           : c
         ),
       })));
@@ -121,7 +119,7 @@ export default function ProjectsScreen() {
         id: Date.now().toString(),
         title: newTitle.trim(),
         tags: newTag.trim() ? [newTag.trim()] : [],
-        priority: newPriority,
+        threat: newThreat,
         effort: newEffort,
         subtasks: [],
       };
@@ -131,7 +129,7 @@ export default function ProjectsScreen() {
     }
     setNewTitle('');
     setNewTag('');
-    setNewPriority('medium');
+    setNewThreat('beta');
     setNewEffort(1);
     setEditingCardId(null);
     setEditingCardColId(null);
@@ -246,20 +244,21 @@ export default function ProjectsScreen() {
               onChangeText={setNewTag}
             />
 
-            <Text style={[font.label, { marginTop: sp.md, marginBottom: sp.sm }]}>Priorität</Text>
+            <Text style={[font.label, { marginTop: sp.md, marginBottom: sp.sm }]}>THREAT LEVEL</Text>
             <View style={{ flexDirection: 'row', gap: sp.sm }}>
-              {(['low', 'medium', 'high'] as const).map(p => (
-                <TouchableOpacity
-                  key={p}
-                  style={[m.prioChip, newPriority === p && { backgroundColor: PRIORITY_COLOR[p] + '25', borderColor: PRIORITY_COLOR[p] }]}
-                  onPress={() => setNewPriority(p)}
-                >
-                  <View style={[m.prioDot, { backgroundColor: PRIORITY_COLOR[p] }]} />
-                  <Text style={[m.prioText, newPriority === p && { color: PRIORITY_COLOR[p] }]}>
-                    {p === 'low' ? 'Niedrig' : p === 'medium' ? 'Mittel' : 'Hoch'}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              {(Object.entries(THREAT) as [ThreatLevel, ThreatCfg][]).map(([lvl, cfg]) => {
+                const active = newThreat === lvl;
+                return (
+                  <TouchableOpacity
+                    key={lvl}
+                    style={[m.threatBtn, active && { backgroundColor: cfg.bg, borderColor: cfg.color }]}
+                    onPress={() => setNewThreat(lvl)}
+                  >
+                    <Ionicons name={cfg.icon} size={14} color={active ? cfg.color : colors.textMuted} />
+                    <Text style={[m.threatLabel, active && { color: cfg.color }]}>{cfg.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
             <Text style={[font.label, { marginTop: sp.md, marginBottom: sp.sm }]}>Aufwand</Text>
@@ -318,13 +317,45 @@ function KanbanCardView({
   newSubtask: string; onSubtaskChange: (v: string) => void;
   onAddSubtask: () => void;
 }) {
-  const subtasks = card.subtasks ?? [];
+  const subtasks  = card.subtasks ?? [];
   const doneCount = subtasks.filter(st => st.done).length;
+  const threat    = card.threat ?? 'beta';
+  const tcfg      = THREAT[threat];
+
+  // Omega: pulsing border animation
+  const pulseAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (threat !== 'omega') return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1, duration: 900, useNativeDriver: false }),
+        Animated.timing(pulseAnim, { toValue: 0, duration: 900, useNativeDriver: false }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [threat]); // eslint-disable-line
+
+  const omegaBorder = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['rgba(192,57,43,0.3)', 'rgba(192,57,43,1)'],
+  });
+
+  const CardContainer = threat === 'omega'
+    ? ({ children }: { children: React.ReactNode }) => (
+        <Animated.View style={[cs.card, { borderColor: omegaBorder }]}>{children}</Animated.View>
+      )
+    : ({ children }: { children: React.ReactNode }) => (
+        <View style={cs.card}>{children}</View>
+      );
 
   return (
-    <View style={cs.card}>
+    <CardContainer>
       <View style={cs.cardTop}>
-        <View style={[cs.priority, { backgroundColor: PRIORITY_COLOR[card.priority] }]} />
+        <View style={[cs.threatBadge, { backgroundColor: tcfg.bg }]}>
+          <Ionicons name={tcfg.icon} size={11} color={tcfg.color} />
+          <Text style={[cs.threatLabel, { color: tcfg.color }]}>{tcfg.label}</Text>
+        </View>
         <View style={cs.arrows}>
           {colIdx > 0 && (
             <TouchableOpacity style={cs.arrow} onPress={() => onMove(card.id, colId, COL_ORDER[colIdx - 1])}>
@@ -390,7 +421,7 @@ function KanbanCardView({
           </View>
         </View>
       )}
-    </View>
+    </CardContainer>
   );
 }
 
@@ -408,7 +439,8 @@ const cs = StyleSheet.create({
     alignItems: 'center',
     marginBottom: sp.sm,
   },
-  priority: { width: 8, height: 8, borderRadius: 4 },
+  threatBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 6, paddingVertical: 2, borderRadius: r.sm },
+  threatLabel: { fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
   arrows: { flexDirection: 'row', gap: 4 },
   arrow: { padding: 5, backgroundColor: colors.cardAlt, borderRadius: 4 },
   arrowFwd: { borderColor: colors.accentDim, borderWidth: 1 },
@@ -483,6 +515,11 @@ const m = StyleSheet.create({
   },
   prioDot: { width: 6, height: 6, borderRadius: 3 },
   prioText: { fontSize: 12, fontWeight: '600', color: colors.textSub },
+  threatBtn: {
+    flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: r.md,
+    backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, gap: 4,
+  },
+  threatLabel: { fontSize: 10, fontWeight: '800', color: colors.textMuted, letterSpacing: 0.5 },
 });
 
 const s = StyleSheet.create({

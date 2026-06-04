@@ -203,12 +203,14 @@ export const useStore = create<AppStore>()(
             completedDates: r.completedDates ?? (r.completed ? [new Date().toISOString().split('T')[0]] : []),
           }));
         }
-        // Migrate KanbanCard: add effort + subtasks
+        // Migrate KanbanCard: priority→threat, add effort + subtasks
+        const THREAT_MAP: Record<string, string> = { low: 'gamma', medium: 'beta', high: 'alpha' };
         if (Array.isArray(stored.projectsBoard)) {
           stored.projectsBoard = stored.projectsBoard.map((col: any) => ({
             ...col,
             cards: (col.cards ?? []).map((c: any) => ({
               ...c,
+              threat:   c.threat ?? THREAT_MAP[c.priority] ?? 'beta',
               effort:   c.effort   ?? 1,
               subtasks: c.subtasks ?? [],
             })),

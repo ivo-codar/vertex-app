@@ -109,11 +109,13 @@ export type Subtask = {
   done: boolean;
 };
 
+export type ThreatLevel = 'gamma' | 'beta' | 'alpha' | 'omega';
+
 export type KanbanCard = {
   id: string;
   title: string;
   tags: string[];
-  priority: 'low' | 'medium' | 'high';
+  threat: ThreatLevel;
   effort: 1 | 2 | 3 | 5 | 8;  // story points
   subtasks: Subtask[];
 };
