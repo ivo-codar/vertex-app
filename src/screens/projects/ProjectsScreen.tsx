@@ -59,19 +59,24 @@ export default function ProjectsScreen() {
   } | null>(null);
 
   const moveCard = (cardId: string, fromId: string, toId: string) => {
-    setBoard(prev => {
-      const card = prev.find(c => c.id === fromId)!.cards.find(c => c.id === cardId)!;
-      if (toId === 'done') {
-        const pts = (card.effort ?? 1) * (card.doubleDown ? 2 : 1);
-        addToWeek('projectsWeek', todayDow(), pts);
-        if (card.threat === 'omega') addAlignment(2); // OMEGA NEUTRALIZED → +2 ALIGNMENT
-      }
-      return prev.map(col => {
-        if (col.id === fromId) return { ...col, cards: col.cards.filter(c => c.id !== cardId) };
-        if (col.id === toId)   return { ...col, cards: [card, ...col.cards] };
-        return col;
-      });
-    });
+    // Find card for side-effects BEFORE updating state
+    const fromCol = board.find(c => c.id === fromId);
+    const card    = fromCol?.cards.find(c => c.id === cardId);
+    if (!card) return; // safety: card not found
+
+    // Side-effects outside setBoard
+    if (toId === 'done') {
+      const pts = (card.effort ?? 1) * (card.doubleDown ? 2 : 1);
+      addToWeek('projectsWeek', todayDow(), pts);
+      if (card.threat === 'omega') addAlignment(2);
+    }
+
+    // Pure state update
+    setBoard(prev => prev.map(col => {
+      if (col.id === fromId) return { ...col, cards: col.cards.filter(c => c.id !== cardId) };
+      if (col.id === toId)   return { ...col, cards: [card, ...col.cards] };
+      return col;
+    }));
   };
 
   const deleteCard = (cardId: string, colId: string) => {

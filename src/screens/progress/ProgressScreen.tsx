@@ -56,17 +56,18 @@ function alignmentStatus(score: number): { label: string; color: string; sub: st
 }
 
 const TOXIN_DEF = [
-  { key: 'junkfood',      label: 'Nutritional Compromise', icon: '🍔', desc: 'Junkfood konsumiert' },
-  { key: 'doomScrolling', label: 'Signal Saturation',      icon: '📱', desc: 'Doom-Scrolling' },
-  { key: 'snooze',        label: 'Protocol Override',       icon: '⏰', desc: 'Alarm überdrückt' },
+  { key: 'junkfood',      label: 'Nutritional Compromise', icon: 'fast-food-outline',      desc: 'Junkfood konsumiert' },
+  { key: 'doomScrolling', label: 'Signal Saturation',       icon: 'phone-portrait-outline', desc: 'Doom-Scrolling' },
+  { key: 'snooze',        label: 'Protocol Override',        icon: 'alarm-outline',          desc: 'Alarm überdrückt' },
 ] as const;
 
 export default function ProgressScreen() {
-  const alignmentScore      = useStore(s => s.alignmentScore);
-  const toxins              = useStore(s => s.toxins);
-  const pendingMorningCheck = useStore(s => s.pendingMorningCheck);
-  const toggleToxin         = useStore(s => s.toggleToxin);
-  const dismissMorningCheck = useStore(s => s.dismissMorningCheck);
+  const alignmentScore         = useStore(s => s.alignmentScore);
+  const alignmentSubjectsToday = useStore(s => s.alignmentSubjectsToday);
+  const toxins                 = useStore(s => s.toxins);
+  const pendingMorningCheck    = useStore(s => s.pendingMorningCheck);
+  const toggleToxin            = useStore(s => s.toggleToxin);
+  const dismissMorningCheck    = useStore(s => s.dismissMorningCheck);
 
   const gymRecords    = useStore(s => s.gymRecords);
   const gymWeek       = useStore(s => s.gymWeek.data);
@@ -81,11 +82,11 @@ export default function ProgressScreen() {
   const [selectedEx, setSelectedEx] = useState<string | null>(null);
 
   // Signal sources for today
-  const todayISO = new Date().toISOString().split('T')[0];
-  const focusToday = focusSessions.some(s => s.date === todayISO);
+  const todayISO   = new Date().toISOString().split('T')[0];
+  const focusDelta = alignmentSubjectsToday.length; // 1 per unique subject
   const gymToday   = gymRecords.some(r => r.entries.some(e => e.date === todayISO));
   const toxinCount = Object.values(toxins).filter(Boolean).length;
-  const deltaToday = (focusToday ? 1 : 0) + (gymToday ? 1 : 0) - toxinCount;
+  const deltaToday = focusDelta + (gymToday ? 1 : 0) - toxinCount;
 
   // Animate bar position
   const barAnim = useRef(new Animated.Value(alignmentPct(alignmentScore))).current;
@@ -187,7 +188,7 @@ export default function ProgressScreen() {
                 )}
               </View>
             </View>
-            <Text style={al.barLabelRight}>PARAGON</Text>
+            <Text style={al.barLabelRight}>SENTINEL</Text>
           </View>
 
           {/* Signal Sources */}
@@ -196,23 +197,25 @@ export default function ProgressScreen() {
             <View style={al.signals}>
               {gymToday && (
                 <View style={al.signal}>
-                  <Text style={al.signalEmoji}>💪</Text>
+                  <Ionicons name="barbell" size={13} color={colors.accent} />
                   <Text style={[al.signalTxt, { color: colors.accent }]}>+1 Gym</Text>
                 </View>
               )}
-              {focusToday && (
+              {focusDelta > 0 && (
                 <View style={al.signal}>
-                  <Text style={al.signalEmoji}>⚡</Text>
-                  <Text style={[al.signalTxt, { color: colors.blue }]}>+1 Focus</Text>
+                  <Ionicons name="timer" size={13} color={colors.blue} />
+                  <Text style={[al.signalTxt, { color: colors.blue }]}>
+                    +{focusDelta} Focus {alignmentSubjectsToday.length > 0 ? `(${alignmentSubjectsToday.join(' · ')})` : ''}
+                  </Text>
                 </View>
               )}
               {toxinCount > 0 && (
                 <View style={al.signal}>
-                  <Text style={al.signalEmoji}>☠</Text>
-                  <Text style={[al.signalTxt, { color: colors.red }]}>−{toxinCount} Toxins</Text>
+                  <Ionicons name="warning" size={13} color={colors.red} />
+                  <Text style={[al.signalTxt, { color: colors.red }]}>−{toxinCount} Agents</Text>
                 </View>
               )}
-              {!gymToday && !focusToday && toxinCount === 0 && (
+              {focusDelta === 0 && !gymToday && toxinCount === 0 && (
                 <Text style={al.signalEmpty}>NO ACTIVE SIGNALS</Text>
               )}
             </View>
@@ -237,7 +240,7 @@ export default function ProgressScreen() {
                 activeOpacity={0.8}
               >
                 {checked && <View style={al.toxinAccent} />}
-                <Text style={al.toxinIcon}>{icon}</Text>
+                <Ionicons name={icon as any} size={22} color={checked ? colors.red : colors.textMuted} />
                 <View style={{ flex: 1 }}>
                   <Text style={[al.toxinLabel, checked && { color: colors.red }]}>{label}</Text>
                   <Text style={al.toxinDesc}>{desc}</Text>
@@ -443,7 +446,7 @@ export default function ProgressScreen() {
                   onPress={() => toggleToxin(key)}
                   activeOpacity={0.8}
                 >
-                  <Text style={mq.icon}>{icon}</Text>
+                  <Ionicons name={icon as any} size={20} color={checked ? colors.red : colors.textMuted} />
                   <View style={{ flex: 1 }}>
                     <Text style={[mq.label, checked && { color: colors.red }]}>{label}</Text>
                     <Text style={mq.desc}>{desc}</Text>

@@ -423,7 +423,7 @@ export default function GymScreen() {
 
                   {ex.sets.map((set, si) => (
                     <View key={set.id} style={[s.setRow, set.done && s.setRowDone]}>
-                      <Text style={[s.setNum, { flex: 0.4 }]}>{si + 1}</Text>
+                      <Text style={s.setNumFixed}>{si + 1}</Text>
                       <TextInput
                         style={[s.setInput, { flex: 1 }]}
                         value={set.weight}
@@ -442,17 +442,15 @@ export default function GymScreen() {
                         keyboardType="decimal-pad"
                         editable={!set.done}
                       />
-                      <View style={{ flex: 0.5, flexDirection: 'row', gap: 4, justifyContent: 'flex-end' }}>
-                        <TouchableOpacity
+                      <TouchableOpacity
                           style={[s.checkBtn, set.done && s.checkBtnDone]}
                           onPress={() => toggleSetDone(exIdx, si)}
                         >
                           {set.done && <Ionicons name="checkmark" size={12} color={colors.bg} />}
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => removeSet(exIdx, si)}>
+                        <TouchableOpacity style={s.removeSetBtn} onPress={() => removeSet(exIdx, si)}>
                           <Ionicons name="close" size={14} color={colors.textMuted} />
                         </TouchableOpacity>
-                      </View>
                     </View>
                   ))}
 
@@ -969,11 +967,13 @@ const s = StyleSheet.create({
 
   setsHeader: { flexDirection: 'row', paddingBottom: sp.xs, borderBottomWidth: 1, borderBottomColor: colors.border, marginBottom: sp.xs },
   setCol: { fontSize: 10, fontWeight: '700', color: colors.textMuted, textAlign: 'center' },
-  setRow: { flexDirection: 'row', alignItems: 'center', gap: sp.xs, paddingVertical: 5 },
+  setRow: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, paddingVertical: 5 },
   setRowDone: { opacity: 0.6 },
+  setNumFixed: { width: 22, fontSize: 13, fontWeight: '600', color: colors.textMuted, textAlign: 'center' },
+  removeSetBtn: { width: 28, height: 36, alignItems: 'center', justifyContent: 'center' },
   setNum: { fontSize: 13, fontWeight: '600', color: colors.textMuted, textAlign: 'center' },
   setInput: { backgroundColor: colors.bg, borderRadius: r.sm, paddingVertical: 6, color: colors.text, fontSize: 15, fontWeight: '600', textAlign: 'center', borderWidth: 1, borderColor: colors.border },
-  checkBtn: { width: 26, height: 26, borderRadius: r.sm, borderWidth: 2, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  checkBtn: { width: 38, height: 38, borderRadius: r.md, borderWidth: 2, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   checkBtnDone: { backgroundColor: colors.accent, borderColor: colors.accent },
   addSetRow: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, paddingTop: sp.sm, marginTop: sp.xs, borderTopWidth: 1, borderTopColor: colors.border },
   addSetTxt: { fontSize: 13, fontWeight: '600', color: colors.accent },
