@@ -155,9 +155,10 @@ export default function DeepWorkScreen() {
   const saveSession = (subjectName: string, ms: number) => {
     const mins = Math.floor(ms / 60000);
     if (mins < 1) return;
-    setSessions(prev => [{ id: Date.now().toString(), subject: subjectName, duration: mins }, ...prev]);
+    const today = new Date().toISOString().split('T')[0];
+    setSessions(prev => [{ id: Date.now().toString(), subject: subjectName, duration: mins, date: today }, ...prev]);
     addToWeek('focusWeek', todayDow(), mins);
-    addAlignment(1); // FOCUS SESSION → +1 ALIGNMENT
+    addAlignment(1);
   };
 
   const handleStop = () => {
@@ -194,8 +195,9 @@ export default function DeepWorkScreen() {
     if (isNaN(h) || h <= 0) return;
     const mins = Math.round(h * 60);
     const sub  = manualSubject || subject;
-    setSessions(prev => [{ id: `m-${Date.now()}`, subject: sub, duration: mins }, ...prev]);
-    setWeekData(prev => prev.map((v, i) => i === todayIdx ? v + mins : v));
+    const today = new Date().toISOString().split('T')[0];
+    setSessions(prev => [{ id: `m-${Date.now()}`, subject: sub, duration: mins, date: today }, ...prev]);
+    addToWeek('focusWeek', todayDow(), mins);
     setManualHours(''); setManualSubject('');
     setShowManual(false);
   };

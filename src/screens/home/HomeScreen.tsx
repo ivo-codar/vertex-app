@@ -10,7 +10,12 @@ import { Routine, CalendarEvent } from '../../types';
 import CalendarModal from '../../components/CalendarModal';
 import MiniCalendarPicker from '../../components/MiniCalendarPicker';
 import { TAG_CONFIG, TAG_OPTIONS } from '../../components/tagConfig';
-import { scheduleEventReminder, cancelEventReminder } from '../../utils/notifications';
+import {
+  scheduleEventReminder,
+  cancelEventReminder,
+  scheduleRoutineReminders,
+  cancelRoutineReminders,
+} from '../../utils/notifications';
 import { useStore } from '../../store';
 
 const WEEKDAYS    = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
@@ -113,21 +118,41 @@ export default function HomeScreen() {
     }));
   };
 
-  const saveRoutine = () => {
+  const saveRoutine = async () => {
     if (!newName.trim()) return;
+    const trimmedTime = newTime.trim();
+
     if (editingRoutineId) {
+      // Cancel old notifications before rescheduling
+      const oldRt = routines.find(r => r.id === editingRoutineId);
+      if (oldRt?.notifIds?.length) await cancelRoutineReminders(oldRt.notifIds);
+
+      let notifIds: string[] = [];
+      if (trimmedTime) {
+        notifIds = await scheduleRoutineReminders({
+          id: editingRoutineId, title: newName.trim(), time: trimmedTime, days: newDays,
+        });
+      }
       setRoutines(prev => prev.map(rt => rt.id === editingRoutineId
-        ? { ...rt, title: newName.trim(), time: newTime.trim() || undefined, days: newDays }
+        ? { ...rt, title: newName.trim(), time: trimmedTime || undefined, days: newDays, notifIds }
         : rt
       ));
     } else {
+      const id = Date.now().toString();
+      let notifIds: string[] = [];
+      if (trimmedTime) {
+        notifIds = await scheduleRoutineReminders({
+          id, title: newName.trim(), time: trimmedTime, days: newDays,
+        });
+      }
       setRoutines(prev => [...prev, {
-        id: Date.now().toString(),
+        id,
         title: newName.trim(),
         streak: 0,
         completedDates: [],
-        time: newTime.trim() || undefined,
+        time: trimmedTime || undefined,
         days: newDays,
+        notifIds,
       }]);
     }
     setNewName(''); setNewTime(''); setNewDays([]);
@@ -264,6 +289,9 @@ export default function HomeScreen() {
                       <View style={s.timeBadge}>
                         <Ionicons name="time-outline" size={10} color={colors.textMuted} />
                         <Text style={s.timeText}>{rt.time}</Text>
+                        {rt.notifIds?.length ? (
+                          <Ionicons name="notifications" size={9} color={colors.accent} />
+                        ) : null}
                       </View>
                     )}
                     {rt.days.length > 0 && (
@@ -278,7 +306,10 @@ export default function HomeScreen() {
                 <TouchableOpacity style={s.iconBtn} onPress={() => openEditRoutine(rt)}>
                   <Ionicons name="pencil" size={13} color={colors.blue} />
                 </TouchableOpacity>
-                <TouchableOpacity style={s.iconBtn} onPress={() => setRoutines(p => p.filter(r => r.id !== rt.id))}>
+                <TouchableOpacity style={s.iconBtn} onPress={() => {
+                  if (rt.notifIds?.length) cancelRoutineReminders(rt.notifIds);
+                  setRoutines(p => p.filter(r => r.id !== rt.id));
+                }}>
                   <Ionicons name="close" size={15} color={colors.textMuted} />
                 </TouchableOpacity>
               </View>

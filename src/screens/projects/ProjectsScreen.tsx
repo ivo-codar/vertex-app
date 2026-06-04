@@ -54,6 +54,9 @@ export default function ProjectsScreen() {
   const addAlignment = useStore(s => s.addAlignment);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [newSubtask, setNewSubtask] = useState('');
+  const [actionSheet, setActionSheet] = useState<{
+    card: KanbanCard; colId: string; colIdx: number;
+  } | null>(null);
 
   const moveCard = (cardId: string, fromId: string, toId: string) => {
     setBoard(prev => {
@@ -196,12 +199,8 @@ export default function ProjectsScreen() {
                 <KanbanCardView
                   key={card.id}
                   card={card}
-                  colId={col.id}
-                  colIdx={colIdx}
-                  totalCols={board.length}
-                  onMove={moveCard}
-                  onDelete={deleteCard}
-                  onEdit={() => openEditCard(card, col.id)}
+                  onPress={() => openEditCard(card, col.id)}
+                  onLongPress={() => setActionSheet({ card, colId: col.id, colIdx })}
                   expanded={expandedCard === card.id}
                   onToggleExpand={() => setExpandedCard(prev => prev === card.id ? null : card.id)}
                   onToggleSubtask={(subId) => toggleSubtask(card.id, col.id, subId)}
@@ -230,6 +229,71 @@ export default function ProjectsScreen() {
           </Text>
         </View>
       </ScrollView>
+
+      {/* ── Card Action Sheet ── */}
+      <Modal visible={!!actionSheet} transparent animationType="fade" onRequestClose={() => setActionSheet(null)}>
+        <TouchableOpacity style={as.overlay} activeOpacity={1} onPress={() => setActionSheet(null)} />
+        {actionSheet && (
+          <View style={as.sheet}>
+            <Text style={as.cardTitle} numberOfLines={1}>{actionSheet.card.title}</Text>
+            <View style={[as.threatRow, { backgroundColor: THREAT[actionSheet.card.threat]?.bg }]}>
+              <Ionicons name={THREAT[actionSheet.card.threat]?.icon} size={12} color={THREAT[actionSheet.card.threat]?.color} />
+              <Text style={[as.threatTxt, { color: THREAT[actionSheet.card.threat]?.color }]}>
+                {THREAT[actionSheet.card.threat]?.label}
+              </Text>
+              <Text style={as.effortTxt}>{actionSheet.card.effort}pt</Text>
+            </View>
+
+            <View style={as.divider} />
+
+            {/* Move options */}
+            {actionSheet.colIdx > 0 && (
+              <TouchableOpacity style={as.action} onPress={() => {
+                moveCard(actionSheet.card.id, actionSheet.colId, COL_ORDER[actionSheet.colIdx - 1]);
+                setActionSheet(null);
+              }}>
+                <Ionicons name="arrow-back-circle" size={20} color={colors.blue} />
+                <Text style={[as.actionTxt, { color: colors.blue }]}>
+                  Zurück → {board[actionSheet.colIdx - 1]?.title}
+                </Text>
+              </TouchableOpacity>
+            )}
+            {actionSheet.colIdx < board.length - 1 && (
+              <TouchableOpacity style={as.action} onPress={() => {
+                moveCard(actionSheet.card.id, actionSheet.colId, COL_ORDER[actionSheet.colIdx + 1]);
+                setActionSheet(null);
+              }}>
+                <Ionicons name="arrow-forward-circle" size={20} color={colors.accent} />
+                <Text style={[as.actionTxt, { color: colors.accent }]}>
+                  Weiter → {board[actionSheet.colIdx + 1]?.title}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            <View style={as.divider} />
+
+            <TouchableOpacity style={as.action} onPress={() => {
+              openEditCard(actionSheet.card, actionSheet.colId);
+              setActionSheet(null);
+            }}>
+              <Ionicons name="pencil" size={20} color={colors.textSub} />
+              <Text style={as.actionTxt}>Bearbeiten</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={as.action} onPress={() => {
+              deleteCard(actionSheet.card.id, actionSheet.colId);
+              setActionSheet(null);
+            }}>
+              <Ionicons name="trash-outline" size={20} color={colors.red} />
+              <Text style={[as.actionTxt, { color: colors.red }]}>Löschen</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={as.cancelBtn} onPress={() => setActionSheet(null)}>
+              <Text style={as.cancelTxt}>Abbrechen</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </Modal>
 
       {/* Add Card Modal */}
       <Modal visible={showModal} transparent animationType="slide" onRequestClose={() => setShowModal(false)}>
@@ -346,13 +410,12 @@ export default function ProjectsScreen() {
 }
 
 function KanbanCardView({
-  card, colId, colIdx, totalCols, onMove, onDelete, onEdit,
+  card, onPress, onLongPress,
   expanded, onToggleExpand, onToggleSubtask, newSubtask, onSubtaskChange, onAddSubtask,
 }: {
-  card: KanbanCard; colId: string; colIdx: number; totalCols: number;
-  onMove: (id: string, from: string, to: string) => void;
-  onDelete: (id: string, colId: string) => void;
-  onEdit: () => void;
+  card: KanbanCard;
+  onPress: () => void;
+  onLongPress: () => void;
   expanded: boolean; onToggleExpand: () => void;
   onToggleSubtask: (subId: string) => void;
   newSubtask: string; onSubtaskChange: (v: string) => void;
@@ -392,34 +455,28 @@ function KanbanCardView({
 
   return (
     <CardContainer>
-      <View style={cs.cardTop}>
-        <View style={[cs.threatBadge, { backgroundColor: tcfg.bg }]}>
-          <Ionicons name={tcfg.icon} size={11} color={tcfg.color} />
-          <Text style={[cs.threatLabel, { color: tcfg.color }]}>{tcfg.label}</Text>
+      <TouchableOpacity
+        onPress={onPress}
+        onLongPress={onLongPress}
+        delayLongPress={400}
+        activeOpacity={0.85}
+      >
+        <View style={cs.cardTop}>
+          <View style={[cs.threatBadge, { backgroundColor: tcfg.bg }]}>
+            <Ionicons name={tcfg.icon} size={11} color={tcfg.color} />
+            <Text style={[cs.threatLabel, { color: tcfg.color }]}>{tcfg.label}</Text>
+          </View>
+          <Ionicons name="ellipsis-horizontal" size={14} color={colors.textMuted} />
         </View>
-        <View style={cs.arrows}>
-          {colIdx > 0 && (
-            <TouchableOpacity style={cs.arrow} onPress={() => onMove(card.id, colId, COL_ORDER[colIdx - 1])}>
-              <Ionicons name="arrow-back" size={12} color={colors.textMuted} />
-            </TouchableOpacity>
-          )}
-          {colIdx < totalCols - 1 && (
-            <TouchableOpacity style={[cs.arrow, cs.arrowFwd]} onPress={() => onMove(card.id, colId, COL_ORDER[colIdx + 1])}>
-              <Ionicons name="arrow-forward" size={12} color={colors.accent} />
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity style={cs.arrow} onPress={onEdit}>
-            <Ionicons name="pencil" size={11} color={colors.blue} />
-          </TouchableOpacity>
-          <TouchableOpacity style={cs.arrow} onPress={() => onDelete(card.id, colId)}>
-            <Ionicons name="close" size={12} color={colors.red} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <TouchableOpacity onPress={onToggleExpand} activeOpacity={0.85}>
         <Text style={cs.title}>{card.title}</Text>
       </TouchableOpacity>
+
+      {/* Subtask expand remains separate */}
+      {subtasks.length > 0 && (
+        <TouchableOpacity onPress={onToggleExpand} style={cs.subtaskToggle}>
+          <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={12} color={colors.textMuted} />
+        </TouchableOpacity>
+      )}
 
       <View style={cs.cardFooter}>
         {card.tags.length > 0 && card.tags.map(tag => (
@@ -434,9 +491,9 @@ function KanbanCardView({
           </View>
         )}
         {subtasks.length > 0 && (
-          <TouchableOpacity style={cs.subtasksBadge} onPress={onToggleExpand}>
+          <View style={cs.subtasksBadge}>
             <Text style={cs.subtasksTxt}>{doneCount}/{subtasks.length}</Text>
-          </TouchableOpacity>
+          </View>
         )}
       </View>
 
@@ -495,6 +552,7 @@ const cs = StyleSheet.create({
   tag: { backgroundColor: colors.accentDim, borderRadius: r.full, paddingHorizontal: 7, paddingVertical: 2 },
   tagText: { fontSize: 10, fontWeight: '700', color: colors.accent },
   cardFooter: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: sp.sm, alignItems: 'center' },
+  subtaskToggle: { alignSelf: 'flex-end', padding: 4, marginTop: -sp.xs },
   effortBadge: { backgroundColor: colors.blueDim, borderRadius: r.full, paddingHorizontal: 6, paddingVertical: 2 },
   effortTxt: { fontSize: 10, fontWeight: '700', color: colors.blue },
   ddBadge: { backgroundColor: 'rgba(192,57,43,0.18)', borderRadius: r.full, paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: 'rgba(192,57,43,0.5)' },
@@ -685,4 +743,43 @@ const s = StyleSheet.create({
     padding: sp.md,
     alignSelf: 'flex-start',
   },
+});
+
+// ── Card Action Sheet styles ──────────────────────────────────────────────────
+const as = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.75)',
+  },
+  sheet: {
+    position: 'absolute',
+    bottom: 0, left: 0, right: 0,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: r.xxl, borderTopRightRadius: r.xxl,
+    padding: sp.lg, paddingBottom: 40,
+    borderWidth: 1, borderColor: colors.border,
+  },
+  cardTitle: {
+    fontSize: 15, fontWeight: '700', color: colors.text,
+    marginBottom: sp.sm, textAlign: 'center',
+  },
+  threatRow: {
+    flexDirection: 'row', alignItems: 'center', gap: sp.sm,
+    alignSelf: 'center', paddingHorizontal: sp.sm, paddingVertical: 4,
+    borderRadius: r.full, marginBottom: sp.sm,
+  },
+  threatTxt: { fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
+  effortTxt: { fontSize: 10, fontWeight: '700', color: colors.blue },
+  divider: { height: 1, backgroundColor: colors.border, marginVertical: sp.sm },
+  action: {
+    flexDirection: 'row', alignItems: 'center', gap: sp.md,
+    padding: sp.md, borderRadius: r.md,
+  },
+  actionTxt: { fontSize: 16, fontWeight: '500', color: colors.text },
+  cancelBtn: {
+    backgroundColor: colors.card, borderRadius: r.md,
+    padding: sp.md, alignItems: 'center', marginTop: sp.sm,
+    borderWidth: 1, borderColor: colors.border,
+  },
+  cancelTxt: { fontSize: 15, fontWeight: '600', color: colors.textSub },
 });

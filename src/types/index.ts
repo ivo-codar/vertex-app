@@ -15,6 +15,7 @@ export type Routine = {
   completedDates: string[]; // YYYY-MM-DD — one entry per day completed
   time?: string;
   days: number[];           // 0=Mo … 6=So, empty = every day
+  notifIds?: string[];      // expo notification IDs for scheduled reminders
 };
 
 export type CalendarEvent = {
@@ -70,6 +71,7 @@ export type WorkSession = {
   id: string;
   subject: string;
   duration: number;
+  date?: string; // YYYY-MM-DD — when the session took place
 };
 
 export type GradeCategory = 'Klausur' | 'Mündlich' | 'Praktisch' | 'Test' | 'Präsentation';
@@ -119,6 +121,7 @@ export type KanbanCard = {
   effort: 1 | 2 | 3 | 5 | 8;
   doubleDown: boolean;           // 2x points on done, penalty on miss
   doubleDownDate: string | null; // YYYY-MM-DD when protocol was activated
+  dueDate?: string | null;       // YYYY-MM-DD optional deadline
   subtasks: Subtask[];
 };
 
@@ -126,6 +129,18 @@ export type KanbanColumn = {
   id: string;
   title: string;
   cards: KanbanCard[];
+};
+
+// ── Abitur ────────────────────────────────────────────────────────────────────
+
+export type AbiturExamType = 'schriftlich' | 'mündlich';
+
+export type AbiturExam = {
+  id: string;
+  subjectId: string;
+  subject: string;
+  type: AbiturExamType;
+  points: number; // 0–15 raw points
 };
 
 // ── Store ─────────────────────────────────────────────────────────────────────

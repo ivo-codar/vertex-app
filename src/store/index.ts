@@ -5,7 +5,7 @@ import {
   Routine, CalendarEvent,
   TrainingSplit, ExerciseRecord,
   SubjectItem, WorkSession, GradeEntry, GradeSubject, CategoryWeights,
-  KanbanColumn, WeekData,
+  KanbanColumn, WeekData, AbiturExam,
 } from '../types';
 import { colors } from '../theme';
 import { getCurrentMonday } from '../utils/storage';
@@ -76,6 +76,9 @@ interface State {
   // Projects
   projectsBoard: KanbanColumn[];
   projectsWeek: WeekData;
+  // Abitur
+  abiturExams: AbiturExam[];
+  abiturEingebracht: string[]; // "subjectId-semester" keys
   // Alignment Meter
   alignmentScore: number;
   alignmentDate: string;
@@ -104,7 +107,7 @@ export type AppStore = State & Actions;
 
 // ── Store ─────────────────────────────────────────────────────────────────────
 
-const STORE_VERSION = 1;
+const STORE_VERSION = 2;
 
 export const useStore = create<AppStore>()(
   persist(
@@ -128,6 +131,8 @@ export const useStore = create<AppStore>()(
       focusGrades: [],
       projectsBoard: INITIAL_BOARD,
       projectsWeek: emptyWeek(),
+      abiturExams: [],
+      abiturEingebracht: [],
       alignmentScore: 0,
       alignmentDate: '',
       toxins: { junkfood: false, doomScrolling: false, snooze: false },
@@ -294,9 +299,32 @@ export const useStore = create<AppStore>()(
             })),
           }));
         }
-        // Always ensure grade fields exist (added in v2)
+        // Always ensure grade fields exist (added in v1)
         stored.gradeSubjects  = stored.gradeSubjects  ?? DEFAULT_GRADE_SUBJECTS;
         stored.activeSemester = stored.activeSemester ?? 1;
+        // Migrate v2: new fields
+        if (fromVersion < 2) {
+          // Routines: add notifIds
+          if (Array.isArray(stored.routines)) {
+            stored.routines = stored.routines.map((r: any) => ({
+              ...r,
+              notifIds: r.notifIds ?? [],
+            }));
+          }
+          // KanbanCards: add dueDate
+          if (Array.isArray(stored.projectsBoard)) {
+            stored.projectsBoard = stored.projectsBoard.map((col: any) => ({
+              ...col,
+              cards: (col.cards ?? []).map((c: any) => ({
+                ...c,
+                dueDate: c.dueDate ?? null,
+              })),
+            }));
+          }
+          // Abitur
+          stored.abiturExams       = stored.abiturExams       ?? [];
+          stored.abiturEingebracht = stored.abiturEingebracht ?? [];
+        }
         // Migrate GradeEntry and category names
         const CAT_MAP: Record<string, string> = { 'Schriftlich': 'Klausur', 'Sonstig': 'Präsentation' };
         if (Array.isArray(stored.focusGrades)) {

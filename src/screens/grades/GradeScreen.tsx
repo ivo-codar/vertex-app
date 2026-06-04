@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, sp, r, font, fx } from '../../theme';
 import { GradeEntry, GradeSubject, GradeCategory, CategoryWeights } from '../../types';
 import { useStore, DEFAULT_GRADE_SUBJECTS } from '../../store';
+import AbiturScreen from './AbiturScreen';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -95,7 +96,7 @@ function calcOverallAvg(
 // ── Main Component ────────────────────────────────────────────────────────────
 
 interface Props { onClose: () => void; }
-type ScreenView = 'main' | 'subject';
+type ScreenView = 'main' | 'subject' | 'abitur';
 
 export default function GradeScreen({ onClose }: Props) {
   const focusGrades   = useStore(s => s.focusGrades);
@@ -386,6 +387,12 @@ export default function GradeScreen({ onClose }: Props) {
     );
   }
 
+  // ── Abitur view ──────────────────────────────────────────────────────────────
+
+  if (view === 'abitur') {
+    return <AbiturScreen onBack={() => setView('main')} />;
+  }
+
   // ── Main view ────────────────────────────────────────────────────────────────
 
   return (
@@ -395,6 +402,9 @@ export default function GradeScreen({ onClose }: Props) {
           <Ionicons name="close" size={20} color={colors.textSub} />
         </TouchableOpacity>
         <Text style={s.screenTitle}>Noten</Text>
+        <TouchableOpacity style={[s.iconBtn2, { backgroundColor: colors.accentDim, borderColor: colors.accent + '50' }]} onPress={() => setView('abitur')}>
+          <Ionicons name="calculator-outline" size={16} color={colors.accent} />
+        </TouchableOpacity>
         <TouchableOpacity style={[s.iconBtn2, { backgroundColor: colors.accent }]} onPress={openAddSubject}>
           <Ionicons name="add" size={18} color={colors.bg} />
         </TouchableOpacity>

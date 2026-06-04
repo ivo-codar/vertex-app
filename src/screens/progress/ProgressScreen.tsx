@@ -56,9 +56,9 @@ function alignmentStatus(score: number): { label: string; color: string; sub: st
 }
 
 const TOXIN_DEF = [
-  { key: 'junkfood',     label: 'Junkfood',        icon: '🍔', desc: 'Ungesunde Ernährung' },
-  { key: 'doomScrolling', label: 'Doom-Scrolling',  icon: '📱', desc: 'Endloses Scrollen' },
-  { key: 'snooze',       label: 'Snooze',           icon: '⏰', desc: 'Alarm überdrückt' },
+  { key: 'junkfood',      label: 'Nutritional Compromise', icon: '🍔', desc: 'Junkfood konsumiert' },
+  { key: 'doomScrolling', label: 'Signal Saturation',      icon: '📱', desc: 'Doom-Scrolling' },
+  { key: 'snooze',        label: 'Protocol Override',       icon: '⏰', desc: 'Alarm überdrückt' },
 ] as const;
 
 export default function ProgressScreen() {
@@ -79,6 +79,13 @@ export default function ProgressScreen() {
   const streak        = useStore(s => s.streak);
 
   const [selectedEx, setSelectedEx] = useState<string | null>(null);
+
+  // Signal sources for today
+  const todayISO = new Date().toISOString().split('T')[0];
+  const focusToday = focusSessions.some(s => s.date === todayISO);
+  const gymToday   = gymRecords.some(r => r.entries.some(e => e.date === todayISO));
+  const toxinCount = Object.values(toxins).filter(Boolean).length;
+  const deltaToday = (focusToday ? 1 : 0) + (gymToday ? 1 : 0) - toxinCount;
 
   // Animate bar position
   const barAnim = useRef(new Animated.Value(alignmentPct(alignmentScore))).current;
@@ -183,27 +190,42 @@ export default function ProgressScreen() {
             <Text style={al.barLabelRight}>PARAGON</Text>
           </View>
 
-          {/* Legend */}
-          <View style={al.legend}>
-            <View style={al.legendItem}>
-              <View style={[al.legendDot, { backgroundColor: colors.accent }]} />
-              <Text style={al.legendTxt}>Gym +1 · Focus +1 · Omega +2</Text>
+          {/* Signal Sources */}
+          <View style={al.signalRow}>
+            <Text style={al.signalTitle}>SIGNAL SOURCES</Text>
+            <View style={al.signals}>
+              {gymToday && (
+                <View style={al.signal}>
+                  <Text style={al.signalEmoji}>💪</Text>
+                  <Text style={[al.signalTxt, { color: colors.accent }]}>+1 Gym</Text>
+                </View>
+              )}
+              {focusToday && (
+                <View style={al.signal}>
+                  <Text style={al.signalEmoji}>⚡</Text>
+                  <Text style={[al.signalTxt, { color: colors.blue }]}>+1 Focus</Text>
+                </View>
+              )}
+              {toxinCount > 0 && (
+                <View style={al.signal}>
+                  <Text style={al.signalEmoji}>☠</Text>
+                  <Text style={[al.signalTxt, { color: colors.red }]}>−{toxinCount} Toxins</Text>
+                </View>
+              )}
+              {!gymToday && !focusToday && toxinCount === 0 && (
+                <Text style={al.signalEmpty}>NO ACTIVE SIGNALS</Text>
+              )}
             </View>
-            <View style={al.legendItem}>
-              <View style={[al.legendDot, { backgroundColor: colors.red }]} />
-              <Text style={al.legendTxt}>Toxin −1 je Check</Text>
-            </View>
+            <Text style={[al.deltaLabel, { color: deltaToday >= 0 ? colors.accent : colors.red }]}>
+              TODAY'S DELTA: {deltaToday >= 0 ? '+' : ''}{deltaToday}
+            </Text>
           </View>
         </View>
 
-        {/* ══════════ TOXIN CHECK-IN ══════════ */}
-        <View style={[al.card, al.toxinCard]}>
-          <View style={al.toxinHeader}>
-            <Ionicons name="nuclear" size={14} color={colors.red} />
-            <Text style={al.toxinTitle}>SYSTEM QUERY</Text>
-            <Ionicons name="nuclear" size={14} color={colors.red} />
-          </View>
-          <Text style={al.toxinQuestion}>WERE TOXINS CONSUMED TODAY?</Text>
+        {/* ══════════ COMPROMISING AGENTS ══════════ */}
+        <View style={al.card}>
+          <Text style={al.protocolLabel}>PROTOCOL CHECK</Text>
+          <Text style={al.toxinQuestion}>COMPROMISING AGENTS DETECTED?</Text>
 
           {TOXIN_DEF.map(({ key, label, icon, desc }) => {
             const checked = toxins[key];
@@ -214,6 +236,7 @@ export default function ProgressScreen() {
                 onPress={() => toggleToxin(key)}
                 activeOpacity={0.8}
               >
+                {checked && <View style={al.toxinAccent} />}
                 <Text style={al.toxinIcon}>{icon}</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={[al.toxinLabel, checked && { color: colors.red }]}>{label}</Text>
@@ -225,9 +248,7 @@ export default function ProgressScreen() {
               </TouchableOpacity>
             );
           })}
-          <Text style={al.toxinNote}>
-            Jeder Haken zieht −1 vom Alignment Score
-          </Text>
+          <Text style={al.toxinNote}>FLAGGED AGENTS REDUCE ALIGNMENT SCORE</Text>
         </View>
 
         {/* ── Top Streak + Summary ── */}
@@ -405,13 +426,13 @@ export default function ProgressScreen() {
       >
         <View style={mq.overlay}>
           <View style={mq.card}>
-            <Text style={mq.system}>O.R.A.C.L.E. SYSTEM QUERY</Text>
-            <Text style={mq.time}>MORNING ASSESSMENT — {new Date().toLocaleDateString('de-DE', { weekday:'long', day:'numeric', month:'long' })}</Text>
+            <Text style={mq.system}>O.R.A.C.L.E. MORNING DIAGNOSTIC</Text>
+            <Text style={mq.time}>{new Date().toLocaleDateString('de-DE', { weekday:'long', day:'numeric', month:'long' })} · CYCLE START</Text>
 
             <View style={mq.divider} />
 
-            <Text style={mq.question}>WERE TOXINS{'\n'}CONSUMED?</Text>
-            <Text style={mq.sub}>Gestrige Gewohnheiten beeinflussen den heutigen Score.</Text>
+            <Text style={mq.question}>REPORT COMPROMISING{'\n'}BEHAVIOR FROM LAST CYCLE</Text>
+            <Text style={mq.sub}>Vergangene Faktoren werden in die heutige Alignment-Berechnung einbezogen.</Text>
 
             {TOXIN_DEF.map(({ key, label, icon, desc }) => {
               const checked = toxins[key];
@@ -438,7 +459,7 @@ export default function ProgressScreen() {
 
             <TouchableOpacity style={mq.confirmBtn} onPress={dismissMorningCheck}>
               <Ionicons name="shield-checkmark" size={16} color={colors.bg} />
-              <Text style={mq.confirmTxt}>ASSESSMENT COMPLETE — PROCEED</Text>
+              <Text style={mq.confirmTxt}>SUBMIT REPORT</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -668,26 +689,35 @@ const al = StyleSheet.create({
   posHalf: { flex: 1, overflow: 'hidden' },
   posFill: { height: '100%', backgroundColor: colors.accent, borderRadius: r.full },
 
-  legend: { flexDirection: 'row', gap: sp.lg, justifyContent: 'center' },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  legendDot: { width: 6, height: 6, borderRadius: 3 },
-  legendTxt: { fontSize: 11, color: colors.textMuted },
+  // ── Signal Sources ──────────────────────────────────────────────────────────
+  signalRow: { borderTopWidth: 1, borderTopColor: colors.border, paddingTop: sp.sm, marginTop: sp.xs },
+  signalTitle: { fontSize: 9, fontWeight: '800', color: colors.textMuted, letterSpacing: 1.5, marginBottom: sp.sm },
+  signals: { flexDirection: 'row', gap: sp.md, flexWrap: 'wrap', marginBottom: sp.sm },
+  signal: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  signalEmoji: { fontSize: 14 },
+  signalTxt: { fontSize: 12, fontWeight: '700' },
+  signalEmpty: { fontSize: 11, color: colors.textMuted, fontStyle: 'italic' },
+  deltaLabel: { fontSize: 12, fontWeight: '800', letterSpacing: 0.5, textAlign: 'right' },
 
-  // ── Toxin check-in ──────────────────────────────────────────────────────────
-  toxinHeader: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, justifyContent: 'center', marginBottom: sp.xs },
-  toxinTitle: { fontSize: 11, fontWeight: '800', color: colors.red, letterSpacing: 2 },
+  // ── Protocol Check ──────────────────────────────────────────────────────────
+  protocolLabel: {
+    fontSize: 9, fontWeight: '800', color: colors.accent,
+    letterSpacing: 1.5, marginBottom: sp.sm,
+  },
   toxinQuestion: {
-    fontSize: 13, fontWeight: '700', color: colors.text,
-    textAlign: 'center', marginBottom: sp.md, letterSpacing: 0.3,
+    fontSize: 14, fontWeight: '700', color: colors.text,
+    marginBottom: sp.md, letterSpacing: 0.2,
   },
   toxinRow: {
-    flexDirection: 'row', alignItems: 'center', gap: sp.md,
+    flexDirection: 'row', alignItems: 'center',
     backgroundColor: colors.bg, borderRadius: r.md,
     padding: sp.md, marginBottom: sp.sm,
     borderWidth: 1, borderColor: colors.border,
+    overflow: 'hidden',
   },
-  toxinRowActive: { borderColor: 'rgba(192,57,43,0.6)', backgroundColor: 'rgba(192,57,43,0.06)' },
-  toxinIcon: { fontSize: 22 },
+  toxinRowActive: { backgroundColor: 'rgba(192,57,43,0.06)', borderColor: colors.border },
+  toxinAccent: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, backgroundColor: colors.red },
+  toxinIcon: { fontSize: 22, marginRight: sp.sm },
   toxinLabel: { fontSize: 14, fontWeight: '600', color: colors.text },
   toxinDesc: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
   toxinCheck: {
@@ -696,5 +726,5 @@ const al = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   toxinCheckDone: { backgroundColor: colors.red, borderColor: colors.red },
-  toxinNote: { fontSize: 11, color: colors.textMuted, textAlign: 'center', marginTop: sp.xs },
+  toxinNote: { fontSize: 10, fontWeight: '600', color: colors.textMuted, letterSpacing: 0.5, marginTop: sp.sm },
 });
