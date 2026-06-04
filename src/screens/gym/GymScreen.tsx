@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, sp, r, font } from '../../theme';
+import { colors, sp, r, font, fx } from '../../theme';
 import { ExerciseRecord, ExerciseEntry, SetEntry, TrainingSplit, SplitDay } from '../../types';
 import WeeklyChart from '../../components/WeeklyChart';
 import { SimpleBarChart, StatBox } from '../../components/SharedCharts';
@@ -261,7 +261,10 @@ export default function GymScreen() {
 
         {/* ── Header ── */}
         <View style={s.pageHeader}>
-          <Text style={font.h2}>Gym</Text>
+          <View>
+            <Text style={s.kicker}>Performance Bay</Text>
+            <Text style={font.h2}>Gym</Text>
+          </View>
           {!workout && (
             <TouchableOpacity style={s.createSplitBtn} onPress={() => setShowCreateSplit(true)}>
               <Ionicons name="add" size={15} color={colors.bg} />
@@ -703,16 +706,17 @@ const s = StyleSheet.create({
   scroll: { flex: 1 },
   content: { paddingHorizontal: 20 },
 
-  pageHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: sp.md },
+  pageHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: sp.lg, marginBottom: sp.sm },
+  kicker: { fontSize: 12, fontWeight: '800', color: colors.accent, letterSpacing: 1.3, marginBottom: 3 },
   createSplitBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.accent, borderRadius: r.full, paddingHorizontal: sp.md, paddingVertical: 6 },
   createSplitTxt: { fontSize: 13, fontWeight: '700', color: colors.bg },
 
-  emptySection: { alignItems: 'center', padding: sp.xl, gap: sp.md, marginTop: sp.md, borderWidth: 1, borderColor: colors.border, borderRadius: r.xl },
+  emptySection: { ...fx.card, alignItems: 'center', padding: sp.xl, gap: sp.md, marginTop: sp.md, borderRadius: r.xl },
   emptyTitle: { fontSize: 16, fontWeight: '600', color: colors.textSub },
   emptySub: { fontSize: 13, color: colors.textMuted, textAlign: 'center' },
   emptyBtn: { backgroundColor: colors.accent, borderRadius: r.full, paddingHorizontal: sp.lg, paddingVertical: sp.sm },
 
-  splitCard: { backgroundColor: colors.card, borderRadius: r.lg, padding: sp.md, marginTop: sp.sm, borderWidth: 1, borderColor: colors.border },
+  splitCard: { ...fx.card, borderRadius: r.xl, padding: sp.md, marginTop: sp.sm },
   splitHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: sp.sm },
   splitName: { fontSize: 15, fontWeight: '700', color: colors.text },
   dayChips: { gap: sp.sm, paddingRight: sp.sm },
@@ -727,14 +731,14 @@ const s = StyleSheet.create({
   startBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.accent, borderRadius: r.full, paddingHorizontal: sp.md, paddingVertical: 8 },
   startBtnTxt: { color: colors.bg, fontWeight: '700', fontSize: 14 },
 
-  workoutHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.card, borderRadius: r.lg, padding: sp.md, marginTop: sp.sm, borderWidth: 1, borderColor: colors.accent + '50' },
+  workoutHeader: { ...fx.card, ...fx.goldLine, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderRadius: r.xl, padding: sp.md, marginTop: sp.sm, borderColor: colors.accent + '50' },
   workoutDayName: { fontSize: 18, fontWeight: '800', color: colors.accent },
   timerRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
   timerText: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },
   finishBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.accent, borderRadius: r.full, paddingHorizontal: sp.md, paddingVertical: 9 },
   finishBtnTxt: { color: colors.bg, fontWeight: '700', fontSize: 14 },
 
-  exCard: { backgroundColor: colors.card, borderRadius: r.lg, padding: sp.md, marginTop: sp.sm, borderWidth: 1, borderColor: colors.border },
+  exCard: { ...fx.card, borderRadius: r.xl, padding: sp.md, marginTop: sp.sm },
   exCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: sp.sm },
   exCardName: { fontSize: 15, fontWeight: '700', color: colors.text, flex: 1 },
   exCardRight: { flexDirection: 'row', alignItems: 'center', gap: sp.sm },
@@ -757,7 +761,7 @@ const s = StyleSheet.create({
   addExBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: sp.sm, padding: sp.md, borderRadius: r.lg, borderWidth: 1, borderColor: colors.accent + '60', marginTop: sp.sm },
   addExTxt: { fontSize: 14, fontWeight: '600', color: colors.accent },
 
-  recCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: r.md, padding: sp.md, marginBottom: sp.sm, borderWidth: 1, borderColor: colors.border, gap: sp.sm },
+  recCard: { ...fx.card, flexDirection: 'row', alignItems: 'center', borderRadius: r.lg, padding: sp.md, marginBottom: sp.sm, gap: sp.sm },
   recName: { fontSize: 14, fontWeight: '600', color: colors.text },
   recSub: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
   progBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 7, paddingVertical: 3, borderRadius: r.full },

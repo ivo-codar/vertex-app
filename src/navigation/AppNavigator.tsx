@@ -29,10 +29,10 @@ function TabIcon({
   name, focused, color,
 }: { name: IconName; focused: boolean; color: string }) {
   return (
-    <View style={s.iconWrap}>
+    <View style={[s.iconWrap, focused && s.iconWrapActive]}>
       {/* Gold indicator line above active tab — Stark HUD style */}
       {focused && <View style={s.indicator} />}
-      <Ionicons name={name} size={21} color={color} />
+      <Ionicons name={name} size={focused ? 23 : 21} color={color} />
     </View>
   );
 }
@@ -55,19 +55,24 @@ export default function AppNavigator() {
         return {
           headerShown: false,
           tabBarStyle: {
-            backgroundColor: colors.surface,
-            borderTopColor: colors.border,
+            backgroundColor: 'rgba(10, 10, 20, 0.96)',
+            borderTopColor: 'rgba(200, 150, 12, 0.28)',
             borderTopWidth: 1,
-            height: 58 + insets.bottom,
-            paddingBottom: Math.max(insets.bottom, 8),
-            paddingTop: 6,
+            height: 64 + insets.bottom,
+            paddingBottom: Math.max(insets.bottom, 10),
+            paddingTop: 8,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -8 },
+            shadowOpacity: 0.35,
+            shadowRadius: 18,
+            elevation: 12,
           },
           tabBarActiveTintColor: colors.accent,
           tabBarInactiveTintColor: colors.textSub,
           tabBarLabelStyle: {
             fontSize: 11,
-            fontWeight: '500' as const,
-            marginTop: 2,
+            fontWeight: '600' as const,
+            marginTop: 3,
             letterSpacing: 0.2,
           },
           tabBarLabel: cfg.label,
@@ -95,15 +100,19 @@ const s = StyleSheet.create({
   iconWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 44,
-    height: 30,
+    width: 46,
+    height: 32,
     gap: 4,
+  },
+  iconWrapActive: {
+    borderRadius: 16,
+    backgroundColor: colors.accentDim,
   },
   // Thin gold line above the active icon — like a Stark UI selector
   indicator: {
     position: 'absolute',
     top: 0,
-    width: 20,
+    width: 22,
     height: 2,
     borderRadius: 1,
     backgroundColor: colors.accent,

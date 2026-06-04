@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, sp, r, font } from '../../theme';
+import { colors, sp, r, font, fx } from '../../theme';
 import { WorkSession, SubjectItem, GradeEntry } from '../../types';
 import GradeScreen from '../grades/GradeScreen';
 import WeeklyChart from '../../components/WeeklyChart';
@@ -271,7 +271,10 @@ export default function DeepWorkScreen() {
       <ScrollView style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
 
         <View style={s.pageHeader}>
-          <Text style={font.h2}>Deep Work</Text>
+          <View>
+            <Text style={s.kicker}>Focus Core</Text>
+            <Text style={font.h2}>Deep Work</Text>
+          </View>
           <View style={s.headerActions}>
             <TouchableOpacity style={s.headerBtn} onPress={() => { setManualSubject(subject); setShowManual(true); }}>
               <Ionicons name="pencil" size={14} color={colors.textSub} />
@@ -581,7 +584,7 @@ function ModalBtns({ onCancel, onSave }: { onCancel: () => void; onSave: () => v
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const sc = StyleSheet.create({
-  card: { flex: 1, backgroundColor: colors.card, borderRadius: r.md, padding: sp.sm, alignItems: 'center', gap: 4, borderWidth: 1, borderColor: colors.border },
+  card: { ...fx.card, flex: 1, borderRadius: r.md, padding: sp.sm, alignItems: 'center', gap: 4 },
   value: { fontSize: 22, fontWeight: '800' },
   label: { fontSize: 12, color: colors.textSub, fontWeight: '600' },
 });
@@ -606,7 +609,8 @@ const s = StyleSheet.create({
   scroll: { flex: 1 },
   content: { paddingHorizontal: 20 },
 
-  pageHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: sp.md },
+  pageHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: sp.lg, marginBottom: sp.sm },
+  kicker: { fontSize: 12, fontWeight: '800', color: colors.blue, letterSpacing: 1.3, marginBottom: 3 },
   headerActions: { flexDirection: 'row', gap: sp.sm },
   headerBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: sp.sm, paddingVertical: 6, borderRadius: r.full, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   headerBtnGold: { borderColor: colors.accent + '60', backgroundColor: colors.accentDim },
@@ -621,7 +625,7 @@ const s = StyleSheet.create({
   manageChip: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   chipHint: { fontSize: 10, color: colors.textMuted, marginTop: 4 },
 
-  timerCard: { backgroundColor: colors.card, borderRadius: r.xl, padding: sp.xl, marginTop: sp.md, alignItems: 'center', gap: sp.lg, borderWidth: 1, borderColor: colors.border },
+  timerCard: { ...fx.card, ...fx.blueLine, borderRadius: r.xl, padding: sp.xl, marginTop: sp.md, alignItems: 'center', gap: sp.lg },
   timerRing: { width: 168, height: 168, borderRadius: 84, borderWidth: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.02)' },
   timerDisplay: { fontSize: 32, fontWeight: '700', color: colors.text, letterSpacing: -1 },
   timerSubject: { fontSize: 12, fontWeight: '600', marginTop: 4 },
@@ -640,7 +644,7 @@ const s = StyleSheet.create({
   barBg: { height: 6, backgroundColor: colors.card, borderRadius: r.full, overflow: 'hidden' },
   barFill: { height: '100%', borderRadius: r.full },
 
-  sessRow: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, backgroundColor: colors.card, borderRadius: r.md, padding: sp.md, marginBottom: sp.sm, borderWidth: 1, borderColor: colors.border },
+  sessRow: { ...fx.card, flexDirection: 'row', alignItems: 'center', gap: sp.sm, borderRadius: r.lg, padding: sp.md, marginBottom: sp.sm },
   sessIconBtn: { padding: 4 },
 
 });

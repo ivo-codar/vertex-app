@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, sp, r, font } from '../../theme';
+import { colors, sp, r, font, fx } from '../../theme';
 import { GradeEntry, GradeSubject, GradeCategory, CategoryWeights } from '../../types';
 import { useStore, DEFAULT_GRADE_SUBJECTS } from '../../store';
 
@@ -759,20 +759,20 @@ const m = StyleSheet.create({
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   content: { paddingHorizontal: 20, paddingBottom: 32 },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: sp.sm, paddingBottom: sp.md, gap: sp.sm },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: sp.lg, paddingBottom: sp.md, gap: sp.sm },
   iconBtn2: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border },
   screenTitle: { flex: 1, ...font.h2 },
   lkBadge: { backgroundColor: colors.accentDim, paddingHorizontal: 7, paddingVertical: 2, borderRadius: r.sm },
   lkText: { fontSize: 10, fontWeight: '800', color: colors.accent },
 
-  semRow: { flexDirection: 'row', marginHorizontal: 20, backgroundColor: colors.card, borderRadius: r.md, padding: 4, marginBottom: sp.md, borderWidth: 1, borderColor: colors.border },
+  semRow: { ...fx.card, flexDirection: 'row', marginHorizontal: 20, borderRadius: r.lg, padding: 4, marginBottom: sp.md },
   semTab: { flex: 1, paddingVertical: sp.sm, borderRadius: r.sm, alignItems: 'center' },
   semTabActive: { backgroundColor: colors.accent },
   semTxt: { fontSize: 13, fontWeight: '700', color: colors.textMuted },
   semTxtActive: { color: colors.bg },
   semAvg: { fontSize: 11, fontWeight: '600', color: colors.textMuted, marginTop: 1 },
 
-  abiCard: { flexDirection: 'row', backgroundColor: colors.card, borderRadius: r.lg, padding: sp.md, marginBottom: sp.md, borderWidth: 1, borderColor: colors.border, gap: sp.md },
+  abiCard: { ...fx.card, ...fx.goldLine, flexDirection: 'row', borderRadius: r.xl, padding: sp.md, marginBottom: sp.md, gap: sp.md },
   abiLeft: { flex: 1 },
   abiTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 2 },
   abiSemRow: { flexDirection: 'row', gap: sp.xs, marginTop: sp.sm },
@@ -784,19 +784,19 @@ const s = StyleSheet.create({
   abiGrade: { fontSize: 15, fontWeight: '700' },
   abiLabel: { fontSize: 10, fontWeight: '600', marginTop: 2 },
 
-  semAvgCard: { backgroundColor: colors.card, borderRadius: r.md, padding: sp.md, marginBottom: sp.sm, borderWidth: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  semAvgCard: { ...fx.card, borderRadius: r.lg, padding: sp.md, marginBottom: sp.sm, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   semAvgLabel: { fontSize: 13, fontWeight: '600', color: colors.textSub },
   semAvgPts: { fontSize: 14, fontWeight: '800' },
 
   groupLabel: { fontSize: 11, fontWeight: '800', color: colors.accent, letterSpacing: 1.5, marginBottom: sp.sm },
 
-  subRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: r.md, padding: sp.md, marginBottom: sp.sm, borderWidth: 1, borderColor: colors.border, gap: sp.xs },
+  subRow: { ...fx.card, flexDirection: 'row', alignItems: 'center', borderRadius: r.lg, padding: sp.md, marginBottom: sp.sm, gap: sp.xs },
   subName: { fontSize: 16, fontWeight: '600', color: colors.text },
   subAvgBadge: { alignItems: 'center', paddingHorizontal: sp.sm, paddingVertical: 4, borderRadius: r.md },
   subAvgPts: { fontSize: 18, fontWeight: '800' },
   subAvgNote: { fontSize: 10, fontWeight: '700' },
 
-  catCard: { backgroundColor: colors.card, borderRadius: r.md, padding: sp.md, marginBottom: sp.sm, borderWidth: 1, borderColor: colors.border },
+  catCard: { ...fx.card, borderRadius: r.lg, padding: sp.md, marginBottom: sp.sm },
   catHeader: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, marginBottom: sp.sm },
   catIcon: { fontSize: 18 },
   catName: { fontSize: 15, fontWeight: '600', color: colors.text },
@@ -808,7 +808,7 @@ const s = StyleSheet.create({
   trendWrap: { flexDirection: 'row', alignItems: 'flex-end', gap: 5, marginBottom: sp.sm, paddingBottom: sp.sm, borderBottomWidth: 1, borderBottomColor: colors.border },
   trendCol: { flex: 1, alignItems: 'center', gap: 3 },
   trendPts: { fontSize: 10, fontWeight: '700' },
-  trendBg: { width: '100%', height: 44, backgroundColor: colors.bg, borderRadius: r.sm, justifyContent: 'flex-end', overflow: 'hidden', borderWidth: 1, borderColor: colors.border },
+  trendBg: { width: '100%', height: 44, backgroundColor: colors.cardDeep, borderRadius: r.sm, justifyContent: 'flex-end', overflow: 'hidden', borderWidth: 1, borderColor: colors.border },
   trendFill: { width: '100%', borderRadius: r.sm },
   trendArrow: { paddingLeft: sp.xs, paddingBottom: sp.xs, alignSelf: 'flex-end' },
 

@@ -26,7 +26,7 @@ export default function WeeklyChart({ data, color = colors.accent, unit = '' }: 
           const fillH    = val > 0 ? Math.max((val / max) * BAR_H, 6) : 0;
           const isToday  = i === todayIdx;
           const isFuture = i > todayIdx;
-          const barColor = isToday ? color : isFuture ? colors.border : color + '40';
+          const barColor = isToday ? color : isFuture ? colors.cardAlt : color + '52';
 
           return (
             <View key={i} style={s.col}>
@@ -39,9 +39,7 @@ export default function WeeklyChart({ data, color = colors.accent, unit = '' }: 
               </Text>
 
               {/* Bar */}
-              <View style={[s.barBg, {
-                borderColor: isToday ? color + '60' : colors.border,
-              }]}>
+              <View style={[s.barBg, isToday && { borderColor: color + '90', backgroundColor: colors.cardDeep }]}>
                 <View style={[s.barFill, { height: fillH, backgroundColor: barColor }]} />
               </View>
 
@@ -61,21 +59,22 @@ export default function WeeklyChart({ data, color = colors.accent, unit = '' }: 
 }
 
 const s = StyleSheet.create({
-  wrap: { position: 'relative', paddingTop: 4 },
+  wrap: { position: 'relative', paddingTop: 6 },
   gridLine: {
     position: 'absolute', left: 0, right: 0,
-    height: 1, backgroundColor: colors.border, opacity: 0.5,
+    height: 1, backgroundColor: colors.hairline, opacity: 1,
   },
   bars: { flexDirection: 'row', alignItems: 'flex-end', gap: 5, paddingBottom: 2 },
   col: { flex: 1, alignItems: 'center', gap: 4 },
   valLabel: { fontSize: 11, fontWeight: '700', height: 14 },
   barBg: {
     width: '100%', height: BAR_H,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.cardDeep,
     borderRadius: r.sm,
     justifyContent: 'flex-end',
     overflow: 'hidden',
     borderWidth: 1,
+    borderColor: colors.border,
   },
   barFill: { width: '100%', borderRadius: r.sm },
   dayLabel: { fontSize: 11, fontWeight: '600', color: colors.textMuted },

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, sp, r } from '../theme';
+import { colors, sp, r, fx } from '../theme';
 
 const BAR_H = 70;
 
@@ -20,16 +20,13 @@ export function SimpleBarChart({ labels, values, color, unit = '' }: BarChartPro
       {values.map((v, i) => {
         const h      = Math.max((v / max) * BAR_H, v > 0 ? 4 : 0);
         const isLast = i === values.length - 1;
-        const c      = isLast ? color : color + '50';
+        const c      = isLast ? color : color + '56';
         return (
           <View key={i} style={s.barCol}>
             <Text style={[s.barVal, { color: isLast ? color : colors.textMuted }]}>
               {v > 0 ? `${v}${unit}` : ''}
             </Text>
-            <View style={[s.barBg, {
-              height: BAR_H,
-              borderColor: isLast ? color + '60' : colors.border,
-            }]}>
+            <View style={[s.barBg, { height: BAR_H }, isLast && { borderColor: color + '90', backgroundColor: colors.cardDeep }]}>
               <View style={[s.barFill, { height: h, backgroundColor: c }]} />
             </View>
             <Text style={[s.barLabel, isLast && { color }]} numberOfLines={1}>
@@ -65,11 +62,12 @@ const s = StyleSheet.create({
   barVal: { fontSize: 11, fontWeight: '700' },
   barBg: {
     width: '100%',
-    backgroundColor: colors.bg,
+    backgroundColor: colors.cardDeep,
     borderRadius: r.sm,
     justifyContent: 'flex-end',
     overflow: 'hidden',
     borderWidth: 1,
+    borderColor: colors.border,
   },
   barFill: { width: '100%', borderRadius: r.sm },
   barLabel: { fontSize: 11, color: colors.textMuted, textAlign: 'center' },
@@ -77,9 +75,9 @@ const s = StyleSheet.create({
 
 const sb = StyleSheet.create({
   card: {
-    flex: 1, backgroundColor: colors.card, borderRadius: r.md,
+    flex: 1, borderRadius: r.md,
     padding: sp.md, alignItems: 'center', gap: 4,
-    borderWidth: 1, borderColor: colors.border,
+    ...fx.card,
   },
   value: { fontSize: 20, fontWeight: '800' },
   label: { fontSize: 12, color: colors.textSub, fontWeight: '600', textAlign: 'center' },

@@ -9,9 +9,11 @@ export const colors = {
   // ── Backgrounds ─────────────────────────────────────────────────────────────
   bg:       '#06060C',
   surface:  '#0A0A14',
-  card:     '#0E0E1A',
-  cardAlt:  '#121220',
-  border:   '#222238',   // slightly visible — cards need edges you can find
+  card:     '#10101D',
+  cardAlt:  '#171728',
+  cardDeep: '#090913',
+  border:   '#2A2A42',   // visible edges without turning into outlines everywhere
+  hairline: 'rgba(234, 234, 244, 0.06)',
 
   // ── Stark Gold ───────────────────────────────────────────────────────────────
   accent:    '#C8960C',
@@ -44,6 +46,37 @@ export const colors = {
   text:      '#EAEAF4',   // bright near-white
   textSub:   '#8C9EC4',   // steel blue — clearly legible
   textMuted: '#565680',   // muted but actually readable now
+};
+
+export const fx = {
+  card: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.28,
+    shadowRadius: 18,
+    elevation: 5,
+  },
+  panel: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    shadowColor: colors.accent,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 4,
+  },
+  goldLine: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(200, 150, 12, 0.42)',
+  },
+  blueLine: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 174, 239, 0.36)',
+  },
 };
 
 export const sp = {

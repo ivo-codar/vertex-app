@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, sp, r, font } from '../../theme';
+import { colors, sp, r, font, fx } from '../../theme';
 import { Routine, CalendarEvent } from '../../types';
 import CalendarModal from '../../components/CalendarModal';
 import MiniCalendarPicker from '../../components/MiniCalendarPicker';
@@ -132,6 +132,7 @@ export default function HomeScreen() {
         {/* ── Header ── */}
         <View style={s.header}>
           <View style={{ flex: 1 }}>
+            <Text style={s.kicker}>Vertex Command</Text>
             <Text style={s.dateText}>
               {DAY_NAMES[todayDow]}, {today.getDate()}. {MONTH_NAMES[today.getMonth()]}
             </Text>
@@ -389,7 +390,10 @@ export default function HomeScreen() {
 function SectionRow({ title, onAdd }: { title: string; onAdd: () => void }) {
   return (
     <View style={sr.row}>
-      <Text style={font.label}>{title}</Text>
+      <View style={sr.titleWrap}>
+        <View style={sr.line} />
+        <Text style={font.label}>{title}</Text>
+      </View>
       <TouchableOpacity style={sr.addBtn} onPress={onAdd}>
         <Ionicons name="add" size={15} color={colors.bg} />
       </TouchableOpacity>
@@ -411,11 +415,13 @@ function EmptyCard({ icon, text, sub }: {
 
 const sr = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: sp.xl, marginBottom: sp.sm },
-  addBtn: { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+  titleWrap: { flexDirection: 'row', alignItems: 'center', gap: sp.sm },
+  line: { width: 18, height: 2, borderRadius: 1, backgroundColor: colors.accent },
+  addBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
 });
 
 const ec = StyleSheet.create({
-  wrap: { alignItems: 'center', padding: sp.xl, borderRadius: r.lg, borderWidth: 1, borderColor: colors.border, gap: sp.sm },
+  wrap: { ...fx.card, alignItems: 'center', padding: sp.xl, borderRadius: r.lg, gap: sp.sm },
   text: { fontSize: 14, fontWeight: '500', color: colors.textSub },
   sub: { fontSize: 12, color: colors.textMuted },
 });
@@ -453,7 +459,8 @@ const s = StyleSheet.create({
     paddingTop: sp.lg, paddingBottom: sp.md,
     gap: sp.md,
   },
-  dateText: { fontSize: 17, fontWeight: '600', color: colors.text },
+  kicker: { fontSize: 12, fontWeight: '700', color: colors.accent, letterSpacing: 1.4, marginBottom: 4 },
+  dateText: { fontSize: 22, fontWeight: '800', color: colors.text, letterSpacing: -0.4 },
   hintText: { fontSize: 13, color: colors.textMuted, marginTop: 4 },
   progressRow: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, marginTop: 6 },
   progressBg: { flex: 1, height: 3, backgroundColor: colors.border, borderRadius: 2, overflow: 'hidden' },
@@ -469,8 +476,10 @@ const s = StyleSheet.create({
 
   // ── Calendar strip ─────────────────────────────────────────────────────────
   calCard: {
-    backgroundColor: colors.card, borderRadius: r.lg,
-    padding: sp.md, borderWidth: 1, borderColor: colors.border,
+    ...fx.card,
+    borderRadius: r.xl,
+    padding: sp.md,
+    borderTopColor: colors.accent + '66',
   },
   calHint: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: sp.md },
   calHintText: { fontSize: 12, fontWeight: '500', color: colors.textMuted },
@@ -490,8 +499,9 @@ const s = StyleSheet.create({
   // ── Routine cards ──────────────────────────────────────────────────────────
   routineCard: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: colors.card, borderRadius: r.md,
-    marginBottom: 8, borderWidth: 1, borderColor: colors.border,
+    ...fx.card,
+    borderRadius: r.lg,
+    marginBottom: 8,
     overflow: 'hidden',
   },
   routineCardDone: { opacity: 0.6 },
@@ -518,8 +528,9 @@ const s = StyleSheet.create({
   // ── Event cards ────────────────────────────────────────────────────────────
   eventCard: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: colors.card, borderRadius: r.md,
-    marginBottom: 8, borderWidth: 1, borderColor: colors.border,
+    ...fx.card,
+    borderRadius: r.lg,
+    marginBottom: 8,
     overflow: 'hidden', paddingRight: sp.sm, paddingVertical: sp.md, gap: sp.sm,
   },
   eventIconWrap: {

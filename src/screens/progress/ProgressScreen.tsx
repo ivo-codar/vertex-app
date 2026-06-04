@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, sp, r, font } from '../../theme';
+import { colors, sp, r, font, fx } from '../../theme';
 import { useStore } from '../../store';
 import WeeklyChart from '../../components/WeeklyChart';
 import { SimpleBarChart, StatBox } from '../../components/SharedCharts';
@@ -88,6 +88,7 @@ export default function ProgressScreen() {
       >
         {/* ── Header ── */}
         <View style={s.header}>
+          <Text style={s.kicker}>System Intelligence</Text>
           <Text style={font.h2}>Progress</Text>
           <Text style={s.headerSub}>Live-Daten aus allen Bereichen</Text>
         </View>
@@ -338,17 +339,17 @@ const s = StyleSheet.create({
   scroll: { flex: 1 },
   content: { paddingHorizontal: 20, paddingBottom: 32 },
 
-  header: { paddingTop: sp.md, paddingBottom: sp.sm },
+  header: { paddingTop: sp.lg, paddingBottom: sp.sm },
+  kicker: { fontSize: 12, fontWeight: '800', color: colors.accent, letterSpacing: 1.3, marginBottom: 3 },
   headerSub: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
 
   // ── Summary card ─────────────────────────────────────────────────────────
   summaryCard: {
+    ...fx.card,
     flexDirection: 'row',
-    backgroundColor: colors.card,
-    borderRadius: r.lg,
+    borderRadius: r.xl,
     padding: sp.md,
     marginTop: sp.sm,
-    borderWidth: 1, borderColor: colors.border,
     alignItems: 'center',
   },
   summaryItem: { flex: 1, alignItems: 'center', gap: 3 },
@@ -366,8 +367,9 @@ const s = StyleSheet.create({
 
   // ── Generic card ──────────────────────────────────────────────────────────
   card: {
-    backgroundColor: colors.card, borderRadius: r.lg,
-    padding: sp.md, borderWidth: 1, borderColor: colors.border,
+    ...fx.card,
+    borderRadius: r.xl,
+    padding: sp.md,
   },
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: sp.sm, flexWrap: 'wrap', gap: sp.xs },
   cardLabel: { fontSize: 13, fontWeight: '600', color: colors.textSub, marginBottom: sp.xs },
@@ -393,8 +395,9 @@ const s = StyleSheet.create({
 
   // ── Projects completion ───────────────────────────────────────────────────
   completionCard: {
-    backgroundColor: colors.card, borderRadius: r.lg,
-    padding: sp.md, borderWidth: 1, borderColor: colors.border,
+    ...fx.card,
+    borderRadius: r.xl,
+    padding: sp.md,
     flexDirection: 'row', alignItems: 'center', gap: sp.lg,
   },
   completionLeft: { alignItems: 'center', minWidth: 72 },

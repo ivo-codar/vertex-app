@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, sp, r, font } from '../../theme';
+import { colors, sp, r, font, fx } from '../../theme';
 import { KanbanColumn, KanbanCard } from '../../types';
 import WeeklyChart from '../../components/WeeklyChart';
 import { useStore, todayDow, INITIAL_BOARD } from '../../store';
@@ -94,6 +94,7 @@ export default function ProjectsScreen() {
       {/* Header */}
       <View style={s.header}>
         <View>
+          <Text style={s.kicker}>Workspace Grid</Text>
           <Text style={font.h2}>Projects</Text>
           <Text style={[font.small, { marginTop: 2 }]}>{doneCards}/{totalCards} erledigt</Text>
         </View>
@@ -278,12 +279,10 @@ function KanbanCardView({
 
 const cs = StyleSheet.create({
   card: {
-    backgroundColor: colors.card,
-    borderRadius: r.md,
+    ...fx.card,
+    borderRadius: r.lg,
     padding: sp.md,
     marginBottom: sp.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   cardTop: {
     flexDirection: 'row',
@@ -363,9 +362,10 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: sp.md,
-    paddingTop: sp.md,
+    paddingTop: sp.lg,
     paddingBottom: sp.sm,
   },
+  kicker: { fontSize: 12, fontWeight: '800', color: colors.teal, letterSpacing: 1.3, marginBottom: 3 },
   fab: {
     width: 34,
     height: 34,
@@ -382,16 +382,14 @@ const s = StyleSheet.create({
     marginBottom: sp.md,
   },
   summaryItem: {
+    ...fx.card,
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: colors.card,
     borderRadius: r.md,
     paddingHorizontal: sp.sm,
     paddingVertical: 7,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   summaryDot: { width: 6, height: 6, borderRadius: 3 },
   summaryCount: { fontSize: 14, fontWeight: '700', color: colors.text },
@@ -403,12 +401,10 @@ const s = StyleSheet.create({
     alignItems: 'flex-start',
   },
   column: {
+    ...fx.panel,
     width: 258,
-    backgroundColor: colors.surface,
-    borderRadius: r.lg,
+    borderRadius: r.xl,
     padding: sp.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
     maxHeight: 520,
   },
   colHeader: {
@@ -442,12 +438,10 @@ const s = StyleSheet.create({
   },
 
   chartColumn: {
+    ...fx.panel,
     width: 220,
-    backgroundColor: colors.surface,
-    borderRadius: r.lg,
+    borderRadius: r.xl,
     padding: sp.md,
-    borderWidth: 1,
-    borderColor: colors.border,
     alignSelf: 'flex-start',
   },
 });
