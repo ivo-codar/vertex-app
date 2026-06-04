@@ -116,7 +116,9 @@ export type KanbanCard = {
   title: string;
   tags: string[];
   threat: ThreatLevel;
-  effort: 1 | 2 | 3 | 5 | 8;  // story points
+  effort: 1 | 2 | 3 | 5 | 8;
+  doubleDown: boolean;           // 2x points on done, penalty on miss
+  doubleDownDate: string | null; // YYYY-MM-DD when protocol was activated
   subtasks: Subtask[];
 };
 

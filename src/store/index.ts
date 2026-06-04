@@ -145,6 +145,7 @@ export const useStore = create<AppStore>()(
         yesterday.setDate(yesterday.getDate() - 1);
         const todayStr = today.toDateString();
         const ystStr   = yesterday.toDateString();
+        const todayDow = (today.getDay() + 6) % 7; // 0=Mo
 
         const updates: Partial<State> = {};
 
@@ -164,6 +165,32 @@ export const useStore = create<AppStore>()(
         }
 
         // completedDates-based routines don't need daily reset
+
+        // ── Double Down penalty ──────────────────────────────────────────────
+        // Any card still NOT in "done" with doubleDownDate = yesterday → subtract effort
+        const yesterdayISO = (() => {
+          const d = new Date(today); d.setDate(d.getDate() - 1);
+          return d.toISOString().split('T')[0];
+        })();
+        const doneIds = new Set(
+          (state.projectsBoard.find(c => c.id === 'done')?.cards ?? []).map(c => c.id)
+        );
+        let penalty = 0;
+        state.projectsBoard.forEach(col => {
+          if (col.id === 'done') return;
+          col.cards.forEach(card => {
+            if (card.doubleDown && card.doubleDownDate === yesterdayISO && !doneIds.has(card.id)) {
+              penalty += card.effort ?? 1;
+            }
+          });
+        });
+        if (penalty > 0) {
+          const ystDow = (todayDow - 1 + 7) % 7;
+          updates.projectsWeek = {
+            weekOf: state.projectsWeek.weekOf,
+            data: state.projectsWeek.data.map((v, i) => i === ystDow ? v - penalty : v),
+          };
+        }
 
         if (Object.keys(updates).length > 0) {
           set(state => ({ ...state, ...updates }));
@@ -203,16 +230,18 @@ export const useStore = create<AppStore>()(
             completedDates: r.completedDates ?? (r.completed ? [new Date().toISOString().split('T')[0]] : []),
           }));
         }
-        // Migrate KanbanCard: priority→threat, add effort + subtasks
+        // Migrate KanbanCard: priority→threat, add effort + subtasks + doubleDown
         const THREAT_MAP: Record<string, string> = { low: 'gamma', medium: 'beta', high: 'alpha' };
         if (Array.isArray(stored.projectsBoard)) {
           stored.projectsBoard = stored.projectsBoard.map((col: any) => ({
             ...col,
             cards: (col.cards ?? []).map((c: any) => ({
               ...c,
-              threat:   c.threat ?? THREAT_MAP[c.priority] ?? 'beta',
-              effort:   c.effort   ?? 1,
-              subtasks: c.subtasks ?? [],
+              threat:         c.threat         ?? THREAT_MAP[c.priority] ?? 'beta',
+              effort:         c.effort         ?? 1,
+              doubleDown:     c.doubleDown     ?? false,
+              doubleDownDate: c.doubleDownDate ?? null,
+              subtasks:       c.subtasks       ?? [],
             })),
           }));
         }

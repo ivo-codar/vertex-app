@@ -46,8 +46,10 @@ export default function ProjectsScreen() {
   const [editingCardColId, setEditingCardColId] = useState<string | null>(null);
   const [newTitle, setNewTitle]     = useState('');
   const [newTag, setNewTag]         = useState('');
-  const [newThreat, setNewThreat] = useState<ThreatLevel>('beta');
-  const [newEffort, setNewEffort]   = useState<1|2|3|5|8>(1);
+  const [newThreat, setNewThreat]       = useState<ThreatLevel>('beta');
+  const [newEffort, setNewEffort]       = useState<1|2|3|5|8>(1);
+  const [newDoubleDown, setNewDoubleDown] = useState(false);
+  const [showDDWarning, setShowDDWarning] = useState(false);
   const [targetColId, setTargetColId] = useState('todo');
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [newSubtask, setNewSubtask] = useState('');
@@ -56,7 +58,8 @@ export default function ProjectsScreen() {
     setBoard(prev => {
       const card = prev.find(c => c.id === fromId)!.cards.find(c => c.id === cardId)!;
       if (toId === 'done') {
-        addToWeek('projectsWeek', todayDow(), card.effort ?? 1);
+        const pts = (card.effort ?? 1) * (card.doubleDown ? 2 : 1);
+        addToWeek('projectsWeek', todayDow(), pts);
       }
       return prev.map(col => {
         if (col.id === fromId) return { ...col, cards: col.cards.filter(c => c.id !== cardId) };
@@ -99,6 +102,7 @@ export default function ProjectsScreen() {
     setNewTag(card.tags[0] ?? '');
     setNewThreat(card.threat ?? 'beta');
     setNewEffort(card.effort ?? 1);
+    setNewDoubleDown(card.doubleDown ?? false);
     setTargetColId(colId);
     setShowModal(true);
   };
@@ -110,7 +114,7 @@ export default function ProjectsScreen() {
       setBoard(prev => prev.map(col => ({
         ...col,
         cards: col.cards.map(c => c.id === editingCardId
-          ? { ...c, title: newTitle.trim(), tags: newTag.trim() ? [newTag.trim()] : [], threat: newThreat, effort: newEffort }
+          ? { ...c, title: newTitle.trim(), tags: newTag.trim() ? [newTag.trim()] : [], threat: newThreat, effort: newEffort, doubleDown: newDoubleDown, doubleDownDate: newDoubleDown ? (c.doubleDownDate ?? new Date().toISOString().split('T')[0]) : null }
           : c
         ),
       })));
@@ -119,8 +123,10 @@ export default function ProjectsScreen() {
         id: Date.now().toString(),
         title: newTitle.trim(),
         tags: newTag.trim() ? [newTag.trim()] : [],
-        threat: newThreat,
-        effort: newEffort,
+        threat:         newThreat,
+        effort:         newEffort,
+        doubleDown:     newDoubleDown,
+        doubleDownDate: newDoubleDown ? new Date().toISOString().split('T')[0] : null,
         subtasks: [],
       };
       setBoard(prev => prev.map(col =>
@@ -130,6 +136,8 @@ export default function ProjectsScreen() {
     setNewTitle('');
     setNewTag('');
     setNewThreat('beta');
+    setNewDoubleDown(false);
+    setShowDDWarning(false);
     setNewEffort(1);
     setEditingCardId(null);
     setEditingCardColId(null);
@@ -274,6 +282,37 @@ export default function ProjectsScreen() {
               ))}
             </View>
 
+            {/* ── Double Down ── */}
+            <TouchableOpacity
+              style={[m.ddBtn, newDoubleDown && m.ddBtnActive]}
+              onPress={() => {
+                const next = !newDoubleDown;
+                setNewDoubleDown(next);
+                if (next) { setShowDDWarning(true); setTimeout(() => setShowDDWarning(false), 2500); }
+              }}
+            >
+              <View style={m.ddLeft}>
+                <Text style={[m.ddX, newDoubleDown && m.ddXActive]}>2X</Text>
+                <View>
+                  <Text style={[m.ddTitle, newDoubleDown && m.ddTitleActive]}>DOUBLE DOWN PROTOKOLL</Text>
+                  <Text style={m.ddSub}>
+                    {newDoubleDown ? 'Aktiv — Punkte ×2 bei Abschluss' : 'Punkte verdoppeln / Penalty bei Versagen'}
+                  </Text>
+                </View>
+              </View>
+              <View style={[m.ddToggle, newDoubleDown && m.ddToggleOn]}>
+                <View style={[m.ddKnob, newDoubleDown && m.ddKnobOn]} />
+              </View>
+            </TouchableOpacity>
+
+            {showDDWarning && (
+              <View style={m.ddWarningBox}>
+                <Ionicons name="nuclear" size={14} color={colors.red} />
+                <Text style={m.ddWarningTxt}>⚡ DOUBLE DOWN PROTOCOL INITIATED ⚡</Text>
+                <Ionicons name="nuclear" size={14} color={colors.red} />
+              </View>
+            )}
+
             <Text style={[font.label, { marginTop: sp.md, marginBottom: sp.sm }]}>Spalte</Text>
             <View style={{ flexDirection: 'row', gap: sp.sm }}>
               {board.map(col => (
@@ -387,6 +426,11 @@ function KanbanCardView({
         <View style={cs.effortBadge}>
           <Text style={cs.effortTxt}>{card.effort ?? 1}pt</Text>
         </View>
+        {card.doubleDown && (
+          <View style={cs.ddBadge}>
+            <Text style={cs.ddBadgeTxt}>2X</Text>
+          </View>
+        )}
         {subtasks.length > 0 && (
           <TouchableOpacity style={cs.subtasksBadge} onPress={onToggleExpand}>
             <Text style={cs.subtasksTxt}>{doneCount}/{subtasks.length}</Text>
@@ -451,6 +495,8 @@ const cs = StyleSheet.create({
   cardFooter: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: sp.sm, alignItems: 'center' },
   effortBadge: { backgroundColor: colors.blueDim, borderRadius: r.full, paddingHorizontal: 6, paddingVertical: 2 },
   effortTxt: { fontSize: 10, fontWeight: '700', color: colors.blue },
+  ddBadge: { backgroundColor: 'rgba(192,57,43,0.18)', borderRadius: r.full, paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: 'rgba(192,57,43,0.5)' },
+  ddBadgeTxt: { fontSize: 10, fontWeight: '900', color: colors.red },
   subtasksBadge: { backgroundColor: colors.accentDim, borderRadius: r.full, paddingHorizontal: 6, paddingVertical: 2 },
   subtasksTxt: { fontSize: 10, fontWeight: '700', color: colors.accent },
   subtasksWrap: { marginTop: sp.sm, paddingTop: sp.sm, borderTopWidth: 1, borderTopColor: colors.border },
@@ -520,6 +566,31 @@ const m = StyleSheet.create({
     backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, gap: 4,
   },
   threatLabel: { fontSize: 10, fontWeight: '800', color: colors.textMuted, letterSpacing: 0.5 },
+
+  // ── Double Down ───────────────────────────────────────────────────────────
+  ddBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: colors.card, borderRadius: r.md, padding: sp.md,
+    borderWidth: 1, borderColor: colors.border, marginTop: sp.md,
+  },
+  ddBtnActive: { borderColor: colors.red, backgroundColor: 'rgba(192,57,43,0.08)' },
+  ddLeft: { flexDirection: 'row', alignItems: 'center', gap: sp.md, flex: 1 },
+  ddX: { fontSize: 22, fontWeight: '900', color: colors.textMuted, letterSpacing: -1 },
+  ddXActive: { color: colors.red },
+  ddTitle: { fontSize: 12, fontWeight: '800', color: colors.textMuted, letterSpacing: 0.5 },
+  ddTitleActive: { color: colors.red },
+  ddSub: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
+  ddToggle: { width: 40, height: 22, borderRadius: 11, backgroundColor: colors.border, padding: 2 },
+  ddToggleOn: { backgroundColor: colors.red },
+  ddKnob: { width: 18, height: 18, borderRadius: 9, backgroundColor: colors.textMuted },
+  ddKnobOn: { backgroundColor: colors.text, transform: [{ translateX: 18 }] },
+  ddWarningBox: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: sp.sm, backgroundColor: 'rgba(192,57,43,0.12)',
+    borderRadius: r.md, padding: sp.sm, marginTop: sp.sm,
+    borderWidth: 1, borderColor: colors.red,
+  },
+  ddWarningTxt: { fontSize: 11, fontWeight: '800', color: colors.red, letterSpacing: 0.5 },
 });
 
 const s = StyleSheet.create({
