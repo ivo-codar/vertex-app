@@ -68,7 +68,8 @@ export default function DeepWorkScreen() {
   const update    = useStore(s => s.update);
   const addToWeek    = useStore(s => s.addToWeek);
   const storeAddSubject = useStore(s => s.addSubject);
-  const addAlignment = useStore(s => s.addAlignment);
+  const addAlignment        = useStore(s => s.addAlignment);
+  const recordFocusSession  = useStore(s => s.recordFocusSession);
 
   const setSubjects = (fn: SubjectItem[] | ((p: SubjectItem[]) => SubjectItem[])) =>
     update(s => ({ focusSubjects: typeof fn === 'function' ? fn(s.focusSubjects) : fn }));
@@ -158,7 +159,7 @@ export default function DeepWorkScreen() {
     const today = new Date().toISOString().split('T')[0];
     setSessions(prev => [{ id: Date.now().toString(), subject: subjectName, duration: mins, date: today }, ...prev]);
     addToWeek('focusWeek', todayDow(), mins);
-    addAlignment(1);
+    recordFocusSession(subjectName); // +1 per unique subject per day
   };
 
   const handleStop = () => {
@@ -198,6 +199,7 @@ export default function DeepWorkScreen() {
     const today = new Date().toISOString().split('T')[0];
     setSessions(prev => [{ id: `m-${Date.now()}`, subject: sub, duration: mins, date: today }, ...prev]);
     addToWeek('focusWeek', todayDow(), mins);
+    recordFocusSession(sub);
     setManualHours(''); setManualSubject('');
     setShowManual(false);
   };

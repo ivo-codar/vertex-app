@@ -192,6 +192,13 @@ export default function ProjectsScreen() {
               <View style={s.colBadge}>
                 <Text style={s.colBadgeText}>{col.cards.length}</Text>
               </View>
+              {col.cards.length > 0 && (
+                <View style={s.effortTotal}>
+                  <Text style={s.effortTotalTxt}>
+                    {col.cards.reduce((a, c) => a + (c.effort ?? 1), 0)}pt
+                  </Text>
+                </View>
+              )}
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -246,29 +253,25 @@ export default function ProjectsScreen() {
 
             <View style={as.divider} />
 
-            {/* Move options */}
-            {actionSheet.colIdx > 0 && (
-              <TouchableOpacity style={as.action} onPress={() => {
-                moveCard(actionSheet.card.id, actionSheet.colId, COL_ORDER[actionSheet.colIdx - 1]);
-                setActionSheet(null);
-              }}>
-                <Ionicons name="arrow-back-circle" size={20} color={colors.blue} />
-                <Text style={[as.actionTxt, { color: colors.blue }]}>
-                  Zurück → {board[actionSheet.colIdx - 1]?.title}
-                </Text>
-              </TouchableOpacity>
-            )}
-            {actionSheet.colIdx < board.length - 1 && (
-              <TouchableOpacity style={as.action} onPress={() => {
-                moveCard(actionSheet.card.id, actionSheet.colId, COL_ORDER[actionSheet.colIdx + 1]);
-                setActionSheet(null);
-              }}>
-                <Ionicons name="arrow-forward-circle" size={20} color={colors.accent} />
-                <Text style={[as.actionTxt, { color: colors.accent }]}>
-                  Weiter → {board[actionSheet.colIdx + 1]?.title}
-                </Text>
-              </TouchableOpacity>
-            )}
+            {/* Move to any column */}
+            {board.filter(col => col.id !== actionSheet.colId).map(col => {
+              const isDone = col.id === 'done';
+              return (
+                <TouchableOpacity key={col.id} style={as.action} onPress={() => {
+                  moveCard(actionSheet.card.id, actionSheet.colId, col.id);
+                  setActionSheet(null);
+                }}>
+                  <Ionicons
+                    name={isDone ? 'checkmark-circle' : 'arrow-forward-circle'}
+                    size={20}
+                    color={isDone ? colors.accent : colors.blue}
+                  />
+                  <Text style={[as.actionTxt, { color: isDone ? colors.accent : colors.blue }]}>
+                    {isDone ? '✓ ' : ''}Verschieben → {col.title}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
 
             <View style={as.divider} />
 
@@ -723,6 +726,8 @@ const s = StyleSheet.create({
     paddingVertical: 2,
   },
   colBadgeText: { fontSize: 11, fontWeight: '700', color: colors.textSub },
+  effortTotal: { backgroundColor: colors.blueDim, borderRadius: r.full, paddingHorizontal: 6, paddingVertical: 2 },
+  effortTotalTxt: { fontSize: 10, fontWeight: '700', color: colors.blue },
 
   addCard: {
     flexDirection: 'row',

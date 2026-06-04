@@ -54,6 +54,7 @@ export default function GymScreen() {
 
   const [activeDay, setActiveDay] = useState<SplitDay | null>(null);
   const [workout, setWorkout]     = useState<ActiveWorkout | null>(null);
+  const [gymTab, setGymTab]       = useState<'exercises' | 'progress'>('exercises');
 
   // Modals
   const [showCreateSplit, setShowCreateSplit]   = useState(false);
@@ -272,6 +273,22 @@ export default function GymScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
+      {/* ── Workout header — stays visible, outside ScrollView ── */}
+      {workout && (
+        <View style={s.workoutHeader}>
+          <View>
+            <Text style={s.workoutDayName}>{workout.dayName}</Text>
+            <Text style={[font.caption, { color: colors.accent }]}>
+              {workout.exercises.reduce((a, e) => a + e.sets.filter(s => s.done).length, 0)} Sätze bestätigt
+            </Text>
+          </View>
+          <TouchableOpacity style={s.finishBtn} onPress={confirmFinish}>
+            <Ionicons name="checkmark" size={16} color={colors.bg} />
+            <Text style={s.finishBtnTxt}>Beenden & Speichern</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <ScrollView style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
         {/* ── Header ── */}
@@ -370,17 +387,6 @@ export default function GymScreen() {
         {/* ── Active Workout ── */}
         {workout && (
           <>
-            {/* Workout header */}
-            <View style={s.workoutHeader}>
-              <View>
-                <Text style={s.workoutDayName}>{workout.dayName}</Text>
-              </View>
-              <TouchableOpacity style={s.finishBtn} onPress={confirmFinish}>
-                <Ionicons name="checkmark" size={16} color={colors.bg} />
-                <Text style={s.finishBtnTxt}>Beenden</Text>
-              </TouchableOpacity>
-            </View>
-
             {/* Exercise cards */}
             {workout.exercises.map((ex, exIdx) => {
               const last = lastMax(ex.name);
@@ -470,90 +476,82 @@ export default function GymScreen() {
           </>
         )}
 
-        {/* ── Exercise History ── */}
-        {records.length > 0 && (
-          <>
-            <Label text="Alle Übungen" />
-            {records.map(rec => {
-              const prog = getProgress(rec);
-              const last = rec.entries[0];
-              return (
-                <TouchableOpacity key={rec.id} style={s.recCard} onPress={() => setShowHistory(rec)}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={s.recName}>{rec.name}</Text>
-                    {last && (
-                      <Text style={s.recSub}>
-                        Zuletzt: {last.maxWeight}kg · {last.sets.length} Sätze · {last.date}
-                      </Text>
-                    )}
-                  </View>
-                  {prog !== null && (
-                    <View style={[s.progBadge, { backgroundColor: prog.dir === 'up' ? colors.accentDim : colors.amberDim }]}>
-                      <Ionicons
-                        name={prog.dir === 'up' ? 'trending-up' : 'trending-down'}
-                        size={12}
-                        color={prog.dir === 'up' ? colors.accent : colors.amber}
-                      />
-                      <Text style={[s.progTxt, { color: prog.dir === 'up' ? colors.accent : colors.amber }]}>
-                        {prog.dir === 'up' ? '+' : '-'}{prog.pct}%
-                      </Text>
-                    </View>
-                  )}
-                  <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-                </TouchableOpacity>
-              );
-            })}
-          </>
+        {/* ── Übungen / Fortschritt Tabs ── */}
+        {!workout && records.length > 0 && (
+          <View style={s.gymTabs}>
+            <TouchableOpacity
+              style={[s.gymTab, gymTab === 'exercises' && s.gymTabActive]}
+              onPress={() => setGymTab('exercises')}
+            >
+              <Ionicons name="barbell-outline" size={15} color={gymTab === 'exercises' ? colors.bg : colors.textSub} />
+              <Text style={[s.gymTabTxt, gymTab === 'exercises' && s.gymTabTxtActive]}>Übungen</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[s.gymTab, gymTab === 'progress' && s.gymTabActive]}
+              onPress={() => setGymTab('progress')}
+            >
+              <Ionicons name="trending-up-outline" size={15} color={gymTab === 'progress' ? colors.bg : colors.textSub} />
+              <Text style={[s.gymTabTxt, gymTab === 'progress' && s.gymTabTxtActive]}>Fortschritt</Text>
+            </TouchableOpacity>
+          </View>
         )}
 
-        {/* ── Weekly Chart ── */}
-        {records.length > 0 && (
-          <>
-            <Label text="Fortschritt" />
-            {records.map(rec => {
-              if (rec.entries.length === 0) return null;
-              const cur  = rec.entries[0];
-              const prev = rec.entries[1];
-              const wDiff  = prev ? cur.maxWeight - prev.maxWeight : null;
-              const curMaxR  = cur.sets.reduce((a, s) => Math.max(a, s.reps), 0);
-              const prevMaxR = prev ? prev.sets.reduce((a, s) => Math.max(a, s.reps), 0) : null;
-              const rDiff  = prevMaxR !== null ? curMaxR - prevMaxR : null;
-              const pct    = prev && prev.maxWeight > 0
-                ? Math.round((cur.maxWeight - prev.maxWeight) / prev.maxWeight * 1000) / 10
-                : null;
-              return (
-                <TouchableOpacity key={rec.id} style={s.progressCard} onPress={() => setShowHistory(rec)}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={s.progressName}>{rec.name}</Text>
-                    <Text style={s.progressSub}>{cur.maxWeight}kg · {curMaxR} Wdh · {cur.date}</Text>
-                  </View>
-                  {wDiff !== null && wDiff !== 0 && (
-                    <View style={[s.diffBadge, { backgroundColor: (wDiff > 0 ? colors.accent : colors.red) + '20' }]}>
-                      <Text style={[s.diffTxt, { color: wDiff > 0 ? colors.accent : colors.red }]}>
-                        {wDiff > 0 ? '+' : ''}{wDiff}kg
-                      </Text>
-                    </View>
-                  )}
-                  {wDiff === 0 && rDiff !== null && rDiff !== 0 && (
-                    <View style={[s.diffBadge, { backgroundColor: (rDiff > 0 ? colors.teal : colors.amber) + '20' }]}>
-                      <Text style={[s.diffTxt, { color: rDiff > 0 ? colors.teal : colors.amber }]}>
-                        {rDiff > 0 ? '+' : ''}{rDiff} Wdh
-                      </Text>
-                    </View>
-                  )}
-                  {pct !== null && pct !== 0 && (
-                    <View style={[s.diffBadge, { backgroundColor: (pct > 0 ? colors.accent : colors.red) + '12', marginLeft: 3 }]}>
-                      <Text style={[s.diffTxt, { color: pct > 0 ? colors.accent : colors.red, fontSize: 10 }]}>
-                        {pct > 0 ? '+' : ''}{pct}%
-                      </Text>
-                    </View>
-                  )}
-                  <Ionicons name="chevron-forward" size={14} color={colors.textMuted} />
-                </TouchableOpacity>
-              );
-            })}
-          </>
-        )}
+        {/* ── Übungen View ── */}
+        {!workout && gymTab === 'exercises' && records.map(rec => {
+          const last = rec.entries[0];
+          return (
+            <TouchableOpacity key={rec.id} style={s.recCard} onPress={() => setShowHistory(rec)}>
+              <View style={{ flex: 1 }}>
+                <Text style={s.recName}>{rec.name}</Text>
+                {last && <Text style={s.recSub}>Zuletzt: {last.maxWeight}kg · {last.sets.length} Sätze · {last.date}</Text>}
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+            </TouchableOpacity>
+          );
+        })}
+
+        {/* ── Fortschritt View ── */}
+        {!workout && gymTab === 'progress' && records.map(rec => {
+          if (rec.entries.length === 0) return null;
+          const cur = rec.entries[0];
+          const prev = rec.entries[1];
+          const wDiff = prev ? cur.maxWeight - prev.maxWeight : null;
+          const curMaxR = cur.sets.reduce((a, s) => Math.max(a, s.reps), 0);
+          const prevMaxR = prev ? prev.sets.reduce((a, s) => Math.max(a, s.reps), 0) : null;
+          const rDiff = prevMaxR !== null ? curMaxR - prevMaxR : null;
+          const pct = prev && prev.maxWeight > 0
+            ? Math.round((cur.maxWeight - prev.maxWeight) / prev.maxWeight * 1000) / 10 : null;
+          return (
+            <TouchableOpacity key={rec.id} style={s.progressCard} onPress={() => setShowHistory(rec)}>
+              <View style={{ flex: 1 }}>
+                <Text style={s.progressName}>{rec.name}</Text>
+                <Text style={s.progressSub}>{cur.maxWeight}kg · {curMaxR} Wdh · {cur.date}</Text>
+              </View>
+              {wDiff !== null && wDiff !== 0 && (
+                <View style={[s.diffBadge, { backgroundColor: (wDiff > 0 ? colors.accent : colors.red) + '20' }]}>
+                  <Text style={[s.diffTxt, { color: wDiff > 0 ? colors.accent : colors.red }]}>
+                    {wDiff > 0 ? '+' : ''}{wDiff}kg
+                  </Text>
+                </View>
+              )}
+              {wDiff === 0 && rDiff !== null && rDiff !== 0 && (
+                <View style={[s.diffBadge, { backgroundColor: (rDiff > 0 ? colors.teal : colors.amber) + '20' }]}>
+                  <Text style={[s.diffTxt, { color: rDiff > 0 ? colors.teal : colors.amber }]}>
+                    {rDiff > 0 ? '+' : ''}{rDiff} Wdh
+                  </Text>
+                </View>
+              )}
+              {pct !== null && pct !== 0 && (
+                <View style={[s.diffBadge, { backgroundColor: (pct > 0 ? colors.accent : colors.red) + '12', marginLeft: 3 }]}>
+                  <Text style={[s.diffTxt, { color: pct > 0 ? colors.accent : colors.red, fontSize: 10 }]}>
+                    {pct > 0 ? '+' : ''}{pct}%
+                  </Text>
+                </View>
+              )}
+              <Ionicons name="chevron-forward" size={14} color={colors.textMuted} />
+            </TouchableOpacity>
+          );
+        })}
 
         <View style={{ height: 32 }} />
       </ScrollView>
@@ -949,7 +947,12 @@ const s = StyleSheet.create({
   startBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.accent, borderRadius: r.full, paddingHorizontal: sp.md, paddingVertical: 8 },
   startBtnTxt: { color: colors.bg, fontWeight: '700', fontSize: 14 },
 
-  workoutHeader: { ...fx.card, ...fx.goldLine, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderRadius: r.xl, padding: sp.md, marginTop: sp.sm, borderColor: colors.accent + '50' },
+  gymTabs: { flexDirection: 'row', backgroundColor: colors.card, borderRadius: r.md, padding: 4, marginTop: sp.md, marginBottom: sp.xs, borderWidth: 1, borderColor: colors.border, gap: 4 },
+  gymTab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: sp.sm, paddingVertical: sp.sm, borderRadius: r.sm },
+  gymTabActive: { backgroundColor: colors.accent },
+  gymTabTxt: { fontSize: 13, fontWeight: '700', color: colors.textSub },
+  gymTabTxtActive: { color: colors.bg },
+  workoutHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.surface, paddingHorizontal: 20, paddingVertical: sp.sm, borderBottomWidth: 1, borderBottomColor: colors.accent + '40' },
   workoutDayName: { fontSize: 18, fontWeight: '800', color: colors.accent },
   timerRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
   timerText: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },

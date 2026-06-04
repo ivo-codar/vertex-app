@@ -82,8 +82,9 @@ interface State {
   // Alignment Meter
   alignmentScore: number;
   alignmentDate: string;
+  alignmentSubjectsToday: string[]; // subjects that already gave +1 today
   toxins: { junkfood: boolean; doomScrolling: boolean; snooze: boolean };
-  pendingMorningCheck: boolean; // true = show morning toxin query on next open
+  pendingMorningCheck: boolean;
 }
 
 interface Actions {
@@ -101,6 +102,8 @@ interface Actions {
   toggleToxin: (key: 'junkfood' | 'doomScrolling' | 'snooze') => void;
   /** Dismiss morning check-in after user has responded. */
   dismissMorningCheck: () => void;
+  /** Record a focus session — gives +1 alignment only once per subject per day. */
+  recordFocusSession: (subject: string) => void;
 }
 
 export type AppStore = State & Actions;
@@ -135,6 +138,7 @@ export const useStore = create<AppStore>()(
       abiturEingebracht: [],
       alignmentScore: 0,
       alignmentDate: '',
+      alignmentSubjectsToday: [],
       toxins: { junkfood: false, doomScrolling: false, snooze: false },
       pendingMorningCheck: false,
 
@@ -189,10 +193,11 @@ export const useStore = create<AppStore>()(
         // ── Alignment Meter daily reset ──────────────────────────────────────
         const todayISO = today.toISOString().split('T')[0];
         if (state.alignmentDate && state.alignmentDate !== todayISO) {
-          updates.alignmentScore       = 0;
-          updates.alignmentDate        = '';
-          updates.toxins               = { junkfood: false, doomScrolling: false, snooze: false };
-          updates.pendingMorningCheck  = true; // wake-up: ask about toxins in the morning
+          updates.alignmentScore            = 0;
+          updates.alignmentDate             = '';
+          updates.alignmentSubjectsToday    = [];
+          updates.toxins                    = { junkfood: false, doomScrolling: false, snooze: false };
+          updates.pendingMorningCheck       = true; // wake-up: ask about toxins in the morning
         }
 
         // ── Double Down penalty ──────────────────────────────────────────────
@@ -250,6 +255,19 @@ export const useStore = create<AppStore>()(
 
       dismissMorningCheck: () =>
         set(state => ({ ...state, pendingMorningCheck: false })),
+
+      recordFocusSession: (subject) => {
+        const state = get();
+        const today = new Date().toISOString().split('T')[0];
+        const subjects = state.alignmentDate === today ? state.alignmentSubjectsToday : [];
+        if (subjects.includes(subject)) return; // already counted today
+        set(s => ({
+          ...s,
+          alignmentScore: s.alignmentScore + 1,
+          alignmentDate: today,
+          alignmentSubjectsToday: [...subjects, subject],
+        }));
+      },
 
       addSubject: (name) => {
         const state = get();

@@ -46,7 +46,7 @@ function alignmentPct(score: number): number {
 }
 
 function alignmentStatus(score: number): { label: string; color: string; sub: string } {
-  if (score >=  5) return { label: 'PARAGON',      color: '#C8960C', sub: 'Maximale Disziplin. Elite-Level.' };
+  if (score >=  5) return { label: 'SENTINEL',     color: '#C8960C', sub: 'Maximale Disziplin. Elite-Level.' };
   if (score >=  3) return { label: 'ELITE',         color: '#E09B00', sub: 'Herausragende Leistung.' };
   if (score >=  1) return { label: 'ALIGNED',       color: '#00AEEF', sub: 'Kurs gehalten. Weiter so.' };
   if (score ===  0) return { label: 'NEUTRAL',      color: '#68789A', sub: 'Kein Signal. Starte eine Session.' };
@@ -673,8 +673,8 @@ const al = StyleSheet.create({
 
   // ── Horizontal bar ──────────────────────────────────────────────────────────
   barWrap: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, marginBottom: sp.md },
-  barLabelLeft:  { fontSize: 9, fontWeight: '800', color: '#8B0000',    letterSpacing: 0.5, width: 38 },
-  barLabelRight: { fontSize: 9, fontWeight: '800', color: colors.accent, letterSpacing: 0.5, width: 48, textAlign: 'right' },
+  barLabelLeft:  { fontSize: 9, fontWeight: '800', color: '#8B0000',    letterSpacing: 0.5, width: 36 },
+  barLabelRight: { fontSize: 9, fontWeight: '800', color: colors.accent, letterSpacing: 0.5, width: 54, textAlign: 'right' },
   track: {
     flex: 1, height: 12, flexDirection: 'row',
     backgroundColor: colors.bg, borderRadius: r.full,

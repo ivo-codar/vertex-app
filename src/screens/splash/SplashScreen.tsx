@@ -5,14 +5,14 @@ import { StatusBar } from 'expo-status-bar';
 // ── Boot sequence ─────────────────────────────────────────────────────────────
 
 const SEQ = [
-  { text: 'SYSTEM UPLINK ESTABLISHED...',                             speed: 48, pause: 700  },
-  { text: '',                                                          speed: 0,  pause: 100  },
-  { text: 'INITIALIZING  V.E.R.T.E.X.',                              speed: 55, pause: 350  },
-  { text: '[Virtual Environment for Routine & Tactical Execution X]', speed: 22, pause: 700, dim: true },
-  { text: '',                                                          speed: 0,  pause: 200  },
-  { text: 'SYNCING PERFORMANCE METRICS...',                           speed: 42, pause: 300  },
-  { text: 'O.R.A.C.L.E. COACHING PROTOCOL: ONLINE',                  speed: 42, pause: 900  },
-  { text: '',                                                          speed: 0,  pause: 150  },
+  { text: 'SYSTEM UPLINK ESTABLISHED...',                             speed: 22, pause: 300 },
+  { text: '',                                                          speed: 0,  pause: 60  },
+  { text: 'INITIALIZING  V.E.R.T.E.X.',                              speed: 25, pause: 180 },
+  { text: '[Virtual Environment for Routine & Tactical Execution X]', speed: 10, pause: 300, dim: true },
+  { text: '',                                                          speed: 0,  pause: 100 },
+  { text: 'SYNCING PERFORMANCE METRICS...',                           speed: 18, pause: 150 },
+  { text: 'O.R.A.C.L.E. COACHING PROTOCOL: ONLINE',                  speed: 18, pause: 400 },
+  { text: '',                                                          speed: 0,  pause: 80  },
 ];
 
 const AMBER  = '#E09B00';
