@@ -77,9 +77,10 @@ interface State {
   projectsBoard: KanbanColumn[];
   projectsWeek: WeekData;
   // Alignment Meter
-  alignmentScore: number;    // daily discipline score
-  alignmentDate: string;     // YYYY-MM-DD — resets each day
+  alignmentScore: number;
+  alignmentDate: string;
   toxins: { junkfood: boolean; doomScrolling: boolean; snooze: boolean };
+  pendingMorningCheck: boolean; // true = show morning toxin query on next open
 }
 
 interface Actions {
@@ -95,6 +96,8 @@ interface Actions {
   addAlignment: (delta: number) => void;
   /** Toggle a single toxin — automatically applies ±1 to alignment. */
   toggleToxin: (key: 'junkfood' | 'doomScrolling' | 'snooze') => void;
+  /** Dismiss morning check-in after user has responded. */
+  dismissMorningCheck: () => void;
 }
 
 export type AppStore = State & Actions;
@@ -128,6 +131,7 @@ export const useStore = create<AppStore>()(
       alignmentScore: 0,
       alignmentDate: '',
       toxins: { junkfood: false, doomScrolling: false, snooze: false },
+      pendingMorningCheck: false,
 
       // ── Actions ────────────────────────────────────────────────────────────
 
@@ -180,9 +184,10 @@ export const useStore = create<AppStore>()(
         // ── Alignment Meter daily reset ──────────────────────────────────────
         const todayISO = today.toISOString().split('T')[0];
         if (state.alignmentDate && state.alignmentDate !== todayISO) {
-          updates.alignmentScore = 0;
-          updates.alignmentDate  = '';
-          updates.toxins         = { junkfood: false, doomScrolling: false, snooze: false };
+          updates.alignmentScore       = 0;
+          updates.alignmentDate        = '';
+          updates.toxins               = { junkfood: false, doomScrolling: false, snooze: false };
+          updates.pendingMorningCheck  = true; // wake-up: ask about toxins in the morning
         }
 
         // ── Double Down penalty ──────────────────────────────────────────────
@@ -237,6 +242,9 @@ export const useStore = create<AppStore>()(
           alignmentDate: today,
         }));
       },
+
+      dismissMorningCheck: () =>
+        set(state => ({ ...state, pendingMorningCheck: false })),
 
       addSubject: (name) => {
         const state = get();

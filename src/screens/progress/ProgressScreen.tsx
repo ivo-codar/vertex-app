@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, Animated,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, Animated, Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -62,9 +62,11 @@ const TOXIN_DEF = [
 ] as const;
 
 export default function ProgressScreen() {
-  const alignmentScore = useStore(s => s.alignmentScore);
-  const toxins         = useStore(s => s.toxins);
-  const toggleToxin    = useStore(s => s.toggleToxin);
+  const alignmentScore      = useStore(s => s.alignmentScore);
+  const toxins              = useStore(s => s.toxins);
+  const pendingMorningCheck = useStore(s => s.pendingMorningCheck);
+  const toggleToxin         = useStore(s => s.toggleToxin);
+  const dismissMorningCheck = useStore(s => s.dismissMorningCheck);
 
   const gymRecords    = useStore(s => s.gymRecords);
   const gymWeek       = useStore(s => s.gymWeek.data);
@@ -394,6 +396,54 @@ export default function ProgressScreen() {
 
         <View style={{ height: 24 }} />
       </ScrollView>
+      {/* ══════ MORNING SYSTEM QUERY ══════ */}
+      <Modal
+        visible={pendingMorningCheck}
+        transparent
+        animationType="fade"
+        onRequestClose={dismissMorningCheck}
+      >
+        <View style={mq.overlay}>
+          <View style={mq.card}>
+            <Text style={mq.system}>O.R.A.C.L.E. SYSTEM QUERY</Text>
+            <Text style={mq.time}>MORNING ASSESSMENT — {new Date().toLocaleDateString('de-DE', { weekday:'long', day:'numeric', month:'long' })}</Text>
+
+            <View style={mq.divider} />
+
+            <Text style={mq.question}>WERE TOXINS{'\n'}CONSUMED?</Text>
+            <Text style={mq.sub}>Gestrige Gewohnheiten beeinflussen den heutigen Score.</Text>
+
+            {TOXIN_DEF.map(({ key, label, icon, desc }) => {
+              const checked = toxins[key];
+              return (
+                <TouchableOpacity
+                  key={key}
+                  style={[mq.row, checked && mq.rowActive]}
+                  onPress={() => toggleToxin(key)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={mq.icon}>{icon}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[mq.label, checked && { color: colors.red }]}>{label}</Text>
+                    <Text style={mq.desc}>{desc}</Text>
+                  </View>
+                  <View style={[mq.check, checked && mq.checkDone]}>
+                    {checked && <Ionicons name="checkmark" size={12} color={colors.bg} />}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+
+            <View style={mq.divider} />
+
+            <TouchableOpacity style={mq.confirmBtn} onPress={dismissMorningCheck}>
+              <Ionicons name="shield-checkmark" size={16} color={colors.bg} />
+              <Text style={mq.confirmTxt}>ASSESSMENT COMPLETE — PROCEED</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -545,6 +595,41 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: colors.border,
   },
   completionBarFill: { height: '100%', backgroundColor: colors.teal, borderRadius: r.full },
+});
+
+// ── Morning Query styles ──────────────────────────────────────────────────────
+const mq = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.88)', justifyContent: 'center', padding: sp.xl },
+  card: {
+    backgroundColor: colors.surface, borderRadius: r.xl,
+    padding: sp.xl, borderWidth: 1, borderColor: 'rgba(192,57,43,0.5)',
+  },
+  system: { fontSize: 10, fontWeight: '800', color: colors.red, letterSpacing: 2, textAlign: 'center' },
+  time: { fontSize: 11, color: colors.textMuted, textAlign: 'center', marginTop: 3, marginBottom: sp.sm },
+  divider: { height: 1, backgroundColor: colors.border, marginVertical: sp.md },
+  question: {
+    fontSize: 26, fontWeight: '900', color: colors.text, textAlign: 'center',
+    letterSpacing: -0.5, marginBottom: sp.xs,
+  },
+  sub: { fontSize: 12, color: colors.textMuted, textAlign: 'center', marginBottom: sp.lg },
+  row: {
+    flexDirection: 'row', alignItems: 'center', gap: sp.md,
+    backgroundColor: colors.card, borderRadius: r.md,
+    padding: sp.md, marginBottom: sp.sm,
+    borderWidth: 1, borderColor: colors.border,
+  },
+  rowActive: { borderColor: 'rgba(192,57,43,0.6)', backgroundColor: 'rgba(192,57,43,0.07)' },
+  icon: { fontSize: 22 },
+  label: { fontSize: 15, fontWeight: '600', color: colors.text },
+  desc: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
+  check: { width: 22, height: 22, borderRadius: r.sm, borderWidth: 1.5, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  checkDone: { backgroundColor: colors.red, borderColor: colors.red },
+  confirmBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: sp.sm, backgroundColor: colors.accent, borderRadius: r.md,
+    padding: sp.md,
+  },
+  confirmTxt: { fontSize: 13, fontWeight: '800', color: colors.bg, letterSpacing: 0.5 },
 });
 
 // ── Alignment Meter styles ────────────────────────────────────────────────────
