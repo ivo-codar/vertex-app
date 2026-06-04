@@ -11,7 +11,7 @@ const SEQ = [
   { text: '[Virtual Environment for Routine & Tactical Execution X]',  speed: 22, pause: 700, dim: true },
   { text: '',                                                           speed: 0,  pause: 200  },
   { text: 'SYNCING PERFORMANCE METRICS...',                            speed: 42, pause: 300  },
-  { text: 'A.L.F.R.E.D. COACHING PROTOCOL: ONLINE',                   speed: 42, pause: 900  },
+  { text: 'O.R.A.C.L.E. COACHING PROTOCOL: ONLINE',                   speed: 42, pause: 900  },
   { text: '',                                                           speed: 0,  pause: 150  },
   { text: 'AWAITING COMMAND.',                                         speed: 90, pause: 1400, hi: true },
 ];
