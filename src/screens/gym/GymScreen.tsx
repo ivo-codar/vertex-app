@@ -52,12 +52,14 @@ export default function GymScreen() {
     update(s => ({ gymRecords: typeof fn === 'function' ? fn(s.gymRecords) : fn }));
 
   const [activeDay, setActiveDay] = useState<SplitDay | null>(null);
-  const [workout, setWorkout] = useState<ActiveWorkout | null>(null);
-  const [timer, setTimer]     = useState(0);
-  const timerRef              = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [workout, setWorkout]     = useState<ActiveWorkout | null>(null);
 
   // Modals
   const [showCreateSplit, setShowCreateSplit] = useState(false);
+  const [editingSplitDay, setEditingSplitDay] = useState<{ splitId: string; day: SplitDay } | null>(null);
+  const [editDayName, setEditDayName]         = useState('');
+  const [editDayExInput, setEditDayExInput]   = useState('');
+  const [editDayExercises, setEditDayExercises] = useState<string[]>([]);
   const [showHistory, setShowHistory]         = useState<ExerciseRecord | null>(null);
   const [showAddEx, setShowAddEx]             = useState(false);
   const [newExName, setNewExName]             = useState('');
@@ -68,16 +70,30 @@ export default function GymScreen() {
     { name: 'Tag A', exInput: '', exercises: [] },
   ]);
 
-  // Timer for active workout
-  useEffect(() => {
-    if (workout) {
-      timerRef.current = setInterval(() => setTimer(t => t + 1), 1000);
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current);
-      setTimer(0);
-    }
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [!!workout]);
+  // ── Split day editing ────────────────────────────────────────────────────────
+  const openEditSplitDay = (splitId: string, day: SplitDay) => {
+    setEditingSplitDay({ splitId, day });
+    setEditDayName(day.name);
+    setEditDayExercises([...day.exercises]);
+    setEditDayExInput('');
+  };
+
+  const saveEditSplitDay = () => {
+    if (!editingSplitDay) return;
+    setSplits(prev => prev.map(sp => sp.id === editingSplitDay.splitId
+      ? { ...sp, days: sp.days.map(d => d.id === editingSplitDay.day.id
+          ? { ...d, name: editDayName.trim() || d.name, exercises: editDayExercises }
+          : d) }
+      : sp
+    ));
+    setEditingSplitDay(null);
+  };
+
+  const addExToEditDay = () => {
+    if (!editDayExInput.trim()) return;
+    setEditDayExercises(p => [...p, editDayExInput.trim()]);
+    setEditDayExInput('');
+  };
 
   // ── Split creation helpers ─────────────────────────────────────────────────
 
@@ -300,16 +316,23 @@ export default function GymScreen() {
                   {split.days.map(day => {
                     const isActive = activeDay?.id === day.id;
                     return (
-                      <TouchableOpacity
-                        key={day.id}
-                        style={[s.dayChip, isActive && s.dayChipActive]}
-                        onPress={() => setActiveDay(isActive ? null : day)}
-                      >
-                        <Text style={[s.dayChipText, isActive && s.dayChipTextActive]}>{day.name}</Text>
-                        <Text style={[s.dayChipCount, isActive && { color: colors.bg + 'BB' }]}>
-                          {day.exercises.length} Übungen
-                        </Text>
-                      </TouchableOpacity>
+                      <View key={day.id} style={s.dayChipWrap}>
+                        <TouchableOpacity
+                          style={[s.dayChip, isActive && s.dayChipActive]}
+                          onPress={() => setActiveDay(isActive ? null : day)}
+                        >
+                          <Text style={[s.dayChipText, isActive && s.dayChipTextActive]}>{day.name}</Text>
+                          <Text style={[s.dayChipCount, isActive && { color: colors.bg + 'BB' }]}>
+                            {day.exercises.length} Übungen
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={s.dayEditBtn}
+                          onPress={() => openEditSplitDay(split.id, day)}
+                        >
+                          <Ionicons name="pencil" size={12} color={colors.blue} />
+                        </TouchableOpacity>
+                      </View>
                     );
                   })}
                 </ScrollView>
@@ -339,10 +362,6 @@ export default function GymScreen() {
             <View style={s.workoutHeader}>
               <View>
                 <Text style={s.workoutDayName}>{workout.dayName}</Text>
-                <View style={s.timerRow}>
-                  <Ionicons name="timer-outline" size={13} color={colors.textMuted} />
-                  <Text style={s.timerText}>{fmtTimer(timer)}</Text>
-                </View>
               </View>
               <TouchableOpacity style={s.finishBtn} onPress={confirmFinish}>
                 <Ionicons name="checkmark" size={16} color={colors.bg} />
@@ -476,8 +495,53 @@ export default function GymScreen() {
         )}
 
         {/* ── Weekly Chart ── */}
-        <Label text="Diese Woche (Sets)" />
-        <WeeklyChart data={weekData} color={colors.accent} />
+        {records.length > 0 && (
+          <>
+            <Label text="Fortschritt" />
+            {records.map(rec => {
+              if (rec.entries.length === 0) return null;
+              const cur  = rec.entries[0];
+              const prev = rec.entries[1];
+              const wDiff  = prev ? cur.maxWeight - prev.maxWeight : null;
+              const curMaxR  = cur.sets.reduce((a, s) => Math.max(a, s.reps), 0);
+              const prevMaxR = prev ? prev.sets.reduce((a, s) => Math.max(a, s.reps), 0) : null;
+              const rDiff  = prevMaxR !== null ? curMaxR - prevMaxR : null;
+              const pct    = prev && prev.maxWeight > 0
+                ? Math.round((cur.maxWeight - prev.maxWeight) / prev.maxWeight * 1000) / 10
+                : null;
+              return (
+                <TouchableOpacity key={rec.id} style={s.progressCard} onPress={() => setShowHistory(rec)}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.progressName}>{rec.name}</Text>
+                    <Text style={s.progressSub}>{cur.maxWeight}kg · {curMaxR} Wdh · {cur.date}</Text>
+                  </View>
+                  {wDiff !== null && wDiff !== 0 && (
+                    <View style={[s.diffBadge, { backgroundColor: (wDiff > 0 ? colors.accent : colors.red) + '20' }]}>
+                      <Text style={[s.diffTxt, { color: wDiff > 0 ? colors.accent : colors.red }]}>
+                        {wDiff > 0 ? '+' : ''}{wDiff}kg
+                      </Text>
+                    </View>
+                  )}
+                  {wDiff === 0 && rDiff !== null && rDiff !== 0 && (
+                    <View style={[s.diffBadge, { backgroundColor: (rDiff > 0 ? colors.teal : colors.amber) + '20' }]}>
+                      <Text style={[s.diffTxt, { color: rDiff > 0 ? colors.teal : colors.amber }]}>
+                        {rDiff > 0 ? '+' : ''}{rDiff} Wdh
+                      </Text>
+                    </View>
+                  )}
+                  {pct !== null && pct !== 0 && (
+                    <View style={[s.diffBadge, { backgroundColor: (pct > 0 ? colors.accent : colors.red) + '12', marginLeft: 3 }]}>
+                      <Text style={[s.diffTxt, { color: pct > 0 ? colors.accent : colors.red, fontSize: 10 }]}>
+                        {pct > 0 ? '+' : ''}{pct}%
+                      </Text>
+                    </View>
+                  )}
+                  <Ionicons name="chevron-forward" size={14} color={colors.textMuted} />
+                </TouchableOpacity>
+              );
+            })}
+          </>
+        )}
 
         <View style={{ height: 32 }} />
       </ScrollView>
@@ -553,6 +617,51 @@ export default function GymScreen() {
                 </TouchableOpacity>
               </View>
             </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* ── Edit Split Day Modal ── */}
+      <Modal visible={!!editingSplitDay} transparent animationType="slide" onRequestClose={() => setEditingSplitDay(null)}>
+        <KeyboardAvoidingView style={m.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <TouchableOpacity style={m.overlay} activeOpacity={1} onPress={() => setEditingSplitDay(null)} />
+          <View style={[m.sheet, { maxHeight: '75%' }]}>
+            <View style={m.handle} />
+            <Text style={m.title}>Tag bearbeiten</Text>
+            <TextInput style={m.input} value={editDayName} onChangeText={setEditDayName} placeholder="Tag Name" placeholderTextColor={colors.textMuted} />
+            <Text style={[m.title, { fontSize: 13, marginTop: sp.md, marginBottom: sp.sm }]}>Übungen</Text>
+            <ScrollView style={{ maxHeight: 140 }} showsVerticalScrollIndicator={false}>
+              {editDayExercises.map((ex, i) => (
+                <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: sp.sm, marginBottom: sp.xs }}>
+                  <Text style={{ flex: 1, color: colors.text, fontSize: 14 }}>{ex}</Text>
+                  <TouchableOpacity onPress={() => setEditDayExercises(p => p.filter((_, j) => j !== i))}>
+                    <Ionicons name="close" size={16} color={colors.red} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+            <View style={m.exInputRow}>
+              <TextInput
+                style={[m.input, { flex: 1 }]}
+                value={editDayExInput}
+                onChangeText={setEditDayExInput}
+                placeholder="Übung hinzufügen..."
+                placeholderTextColor={colors.textMuted}
+                onSubmitEditing={addExToEditDay}
+                returnKeyType="done"
+              />
+              <TouchableOpacity style={m.addExDayBtn} onPress={addExToEditDay}>
+                <Ionicons name="add" size={18} color={colors.bg} />
+              </TouchableOpacity>
+            </View>
+            <View style={m.btns}>
+              <TouchableOpacity style={m.btnCancel} onPress={() => setEditingSplitDay(null)}>
+                <Text style={{ color: colors.textSub }}>Abbrechen</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={m.btnSave} onPress={saveEditSplitDay}>
+                <Text style={{ color: colors.bg, fontWeight: '700' }}>Speichern</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -720,9 +829,16 @@ const s = StyleSheet.create({
   splitHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: sp.sm },
   splitName: { fontSize: 15, fontWeight: '700', color: colors.text },
   dayChips: { gap: sp.sm, paddingRight: sp.sm },
+  dayChipWrap: { alignItems: 'center', gap: 3 },
   dayChip: { paddingHorizontal: sp.md, paddingVertical: sp.sm, borderRadius: r.lg, backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
   dayChipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
   dayChipText: { fontSize: 13, fontWeight: '700', color: colors.textSub },
+  dayEditBtn: { padding: 3 },
+  progressCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: r.md, padding: sp.md, marginBottom: sp.sm, borderWidth: 1, borderColor: colors.border, gap: sp.sm },
+  progressName: { fontSize: 15, fontWeight: '600', color: colors.text },
+  progressSub: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  diffBadge: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: r.full },
+  diffTxt: { fontSize: 12, fontWeight: '700' },
   dayChipTextActive: { color: colors.bg },
   dayChipCount: { fontSize: 10, color: colors.textMuted, marginTop: 2 },
   startRow: { flexDirection: 'row', alignItems: 'center', gap: sp.md, marginTop: sp.md, paddingTop: sp.md, borderTopWidth: 1, borderTopColor: colors.border },

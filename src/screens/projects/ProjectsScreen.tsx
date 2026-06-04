@@ -47,13 +47,16 @@ export default function ProjectsScreen() {
   const [newTitle, setNewTitle]     = useState('');
   const [newTag, setNewTag]         = useState('');
   const [newPriority, setNewPriority] = useState<KanbanCard['priority']>('medium');
+  const [newEffort, setNewEffort]   = useState<1|2|3|5|8>(1);
   const [targetColId, setTargetColId] = useState('todo');
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
+  const [newSubtask, setNewSubtask] = useState('');
 
   const moveCard = (cardId: string, fromId: string, toId: string) => {
     setBoard(prev => {
       const card = prev.find(c => c.id === fromId)!.cards.find(c => c.id === cardId)!;
       if (toId === 'done') {
-        addToWeek('projectsWeek', todayDow(), 1);
+        addToWeek('projectsWeek', todayDow(), card.effort ?? 1);
       }
       return prev.map(col => {
         if (col.id === fromId) return { ...col, cards: col.cards.filter(c => c.id !== cardId) };
@@ -69,6 +72,26 @@ export default function ProjectsScreen() {
     ));
   };
 
+  const toggleSubtask = (cardId: string, colId: string, subId: string) => {
+    setBoard(prev => prev.map(col => col.id !== colId ? col : {
+      ...col, cards: col.cards.map(c => c.id !== cardId ? c : {
+        ...c, subtasks: (c.subtasks ?? []).map(st =>
+          st.id === subId ? { ...st, done: !st.done } : st
+        ),
+      }),
+    }));
+  };
+
+  const addSubtask = (cardId: string, colId: string) => {
+    if (!newSubtask.trim()) return;
+    setBoard(prev => prev.map(col => col.id !== colId ? col : {
+      ...col, cards: col.cards.map(c => c.id !== cardId ? c : {
+        ...c, subtasks: [...(c.subtasks ?? []), { id: Date.now().toString(), title: newSubtask.trim(), done: false }],
+      }),
+    }));
+    setNewSubtask('');
+  };
+
   const addCard = () => {
     if (!newTitle.trim()) return;
     const card: KanbanCard = {
@@ -76,6 +99,8 @@ export default function ProjectsScreen() {
       title: newTitle.trim(),
       tags: newTag.trim() ? [newTag.trim()] : [],
       priority: newPriority,
+      effort: newEffort,
+      subtasks: [],
     };
     setBoard(prev => prev.map(col =>
       col.id === targetColId ? { ...col, cards: [card, ...col.cards] } : col
@@ -83,6 +108,7 @@ export default function ProjectsScreen() {
     setNewTitle('');
     setNewTag('');
     setNewPriority('medium');
+    setNewEffort(1);
     setShowModal(false);
   };
 
@@ -141,6 +167,12 @@ export default function ProjectsScreen() {
                   totalCols={board.length}
                   onMove={moveCard}
                   onDelete={deleteCard}
+                  expanded={expandedCard === card.id}
+                  onToggleExpand={() => setExpandedCard(prev => prev === card.id ? null : card.id)}
+                  onToggleSubtask={(subId) => toggleSubtask(card.id, col.id, subId)}
+                  newSubtask={expandedCard === card.id ? newSubtask : ''}
+                  onSubtaskChange={setNewSubtask}
+                  onAddSubtask={() => addSubtask(card.id, col.id)}
                 />
               ))}
               <TouchableOpacity
@@ -203,6 +235,19 @@ export default function ProjectsScreen() {
               ))}
             </View>
 
+            <Text style={[font.label, { marginTop: sp.md, marginBottom: sp.sm }]}>Aufwand (Story Points)</Text>
+            <View style={{ flexDirection: 'row', gap: sp.sm }}>
+              {([1, 2, 3, 5, 8] as const).map(pts => (
+                <TouchableOpacity
+                  key={pts}
+                  style={[m.prioChip, newEffort === pts && { backgroundColor: colors.blueDim, borderColor: colors.blue }]}
+                  onPress={() => setNewEffort(pts)}
+                >
+                  <Text style={[m.prioText, newEffort === pts && { color: colors.blue, fontWeight: '800' }]}>{pts}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
             <Text style={[font.label, { marginTop: sp.md, marginBottom: sp.sm }]}>Spalte</Text>
             <View style={{ flexDirection: 'row', gap: sp.sm }}>
               {board.map(col => (
@@ -235,14 +280,19 @@ export default function ProjectsScreen() {
 
 function KanbanCardView({
   card, colId, colIdx, totalCols, onMove, onDelete,
+  expanded, onToggleExpand, onToggleSubtask, newSubtask, onSubtaskChange, onAddSubtask,
 }: {
-  card: KanbanCard;
-  colId: string;
-  colIdx: number;
-  totalCols: number;
+  card: KanbanCard; colId: string; colIdx: number; totalCols: number;
   onMove: (id: string, from: string, to: string) => void;
   onDelete: (id: string, colId: string) => void;
+  expanded: boolean; onToggleExpand: () => void;
+  onToggleSubtask: (subId: string) => void;
+  newSubtask: string; onSubtaskChange: (v: string) => void;
+  onAddSubtask: () => void;
 }) {
+  const subtasks = card.subtasks ?? [];
+  const doneCount = subtasks.filter(st => st.done).length;
+
   return (
     <View style={cs.card}>
       <View style={cs.cardTop}>
@@ -263,14 +313,50 @@ function KanbanCardView({
           </TouchableOpacity>
         </View>
       </View>
-      <Text style={cs.title}>{card.title}</Text>
-      {card.tags.length > 0 && (
-        <View style={cs.tags}>
-          {card.tags.map(tag => (
-            <View key={tag} style={cs.tag}>
-              <Text style={cs.tagText}>{tag}</Text>
-            </View>
+
+      <TouchableOpacity onPress={onToggleExpand} activeOpacity={0.85}>
+        <Text style={cs.title}>{card.title}</Text>
+      </TouchableOpacity>
+
+      <View style={cs.cardFooter}>
+        {card.tags.length > 0 && card.tags.map(tag => (
+          <View key={tag} style={cs.tag}><Text style={cs.tagText}>{tag}</Text></View>
+        ))}
+        <View style={cs.effortBadge}>
+          <Text style={cs.effortTxt}>{card.effort ?? 1}pt</Text>
+        </View>
+        {subtasks.length > 0 && (
+          <TouchableOpacity style={cs.subtasksBadge} onPress={onToggleExpand}>
+            <Text style={cs.subtasksTxt}>{doneCount}/{subtasks.length}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Subtasks — expanded */}
+      {expanded && (
+        <View style={cs.subtasksWrap}>
+          {subtasks.map(st => (
+            <TouchableOpacity key={st.id} style={cs.subtaskRow} onPress={() => onToggleSubtask(st.id)}>
+              <View style={[cs.stCheck, st.done && cs.stCheckDone]}>
+                {st.done && <Ionicons name="checkmark" size={9} color={colors.bg} />}
+              </View>
+              <Text style={[cs.stTitle, st.done && cs.stDone]}>{st.title}</Text>
+            </TouchableOpacity>
           ))}
+          <View style={cs.stInputRow}>
+            <TextInput
+              style={cs.stInput}
+              value={newSubtask}
+              onChangeText={onSubtaskChange}
+              placeholder="Sub-Aufgabe hinzufügen..."
+              placeholderTextColor={colors.textMuted}
+              onSubmitEditing={onAddSubtask}
+              returnKeyType="done"
+            />
+            <TouchableOpacity onPress={onAddSubtask}>
+              <Ionicons name="add-circle" size={20} color={colors.accent} />
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     </View>
@@ -282,6 +368,7 @@ const cs = StyleSheet.create({
     ...fx.card,
     borderRadius: r.lg,
     padding: sp.md,
+    marginBottom: sp.sm,
     marginBottom: sp.sm,
   },
   cardTop: {
@@ -298,6 +385,19 @@ const cs = StyleSheet.create({
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: sp.sm },
   tag: { backgroundColor: colors.accentDim, borderRadius: r.full, paddingHorizontal: 7, paddingVertical: 2 },
   tagText: { fontSize: 10, fontWeight: '700', color: colors.accent },
+  cardFooter: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: sp.sm, alignItems: 'center' },
+  effortBadge: { backgroundColor: colors.blueDim, borderRadius: r.full, paddingHorizontal: 6, paddingVertical: 2 },
+  effortTxt: { fontSize: 10, fontWeight: '700', color: colors.blue },
+  subtasksBadge: { backgroundColor: colors.accentDim, borderRadius: r.full, paddingHorizontal: 6, paddingVertical: 2 },
+  subtasksTxt: { fontSize: 10, fontWeight: '700', color: colors.accent },
+  subtasksWrap: { marginTop: sp.sm, paddingTop: sp.sm, borderTopWidth: 1, borderTopColor: colors.border },
+  subtaskRow: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, paddingVertical: 4 },
+  stCheck: { width: 16, height: 16, borderRadius: 4, borderWidth: 1.5, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  stCheckDone: { backgroundColor: colors.accent, borderColor: colors.accent },
+  stTitle: { flex: 1, fontSize: 13, color: colors.text },
+  stDone: { textDecorationLine: 'line-through', color: colors.textMuted },
+  stInputRow: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, marginTop: sp.xs },
+  stInput: { flex: 1, color: colors.text, fontSize: 13, borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: 4 },
 });
 
 const m = StyleSheet.create({

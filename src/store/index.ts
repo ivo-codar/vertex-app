@@ -163,10 +163,7 @@ export const useStore = create<AppStore>()(
           updates.lastStreakDate = '';
         }
 
-        // Reset completed routines at start of each day
-        if (state.lastStreakDate && state.lastStreakDate !== todayStr) {
-          updates.routines = state.routines.map(r => ({ ...r, completed: false }));
-        }
+        // completedDates-based routines don't need daily reset
 
         if (Object.keys(updates).length > 0) {
           set(state => ({ ...state, ...updates }));
@@ -198,6 +195,24 @@ export const useStore = create<AppStore>()(
           stored.gymWeek       = stored.gymWeek?.data ? stored.gymWeek : emptyWeek();
           stored.focusWeek     = stored.focusWeek?.data ? stored.focusWeek : emptyWeek();
           stored.projectsWeek  = stored.projectsWeek?.data ? stored.projectsWeek : emptyWeek();
+        }
+        // Migrate Routine: completed → completedDates
+        if (Array.isArray(stored.routines)) {
+          stored.routines = stored.routines.map((r: any) => ({
+            ...r,
+            completedDates: r.completedDates ?? (r.completed ? [new Date().toISOString().split('T')[0]] : []),
+          }));
+        }
+        // Migrate KanbanCard: add effort + subtasks
+        if (Array.isArray(stored.projectsBoard)) {
+          stored.projectsBoard = stored.projectsBoard.map((col: any) => ({
+            ...col,
+            cards: (col.cards ?? []).map((c: any) => ({
+              ...c,
+              effort:   c.effort   ?? 1,
+              subtasks: c.subtasks ?? [],
+            })),
+          }));
         }
         // Always ensure grade fields exist (added in v2)
         stored.gradeSubjects  = stored.gradeSubjects  ?? DEFAULT_GRADE_SUBJECTS;

@@ -12,9 +12,9 @@ export type Routine = {
   id: string;
   title: string;
   streak: number;
-  completed: boolean;
+  completedDates: string[]; // YYYY-MM-DD — one entry per day completed
   time?: string;
-  days: number[];
+  days: number[];           // 0=Mo … 6=So, empty = every day
 };
 
 export type CalendarEvent = {
@@ -34,7 +34,7 @@ export type SetEntry = {
 
 export type ExerciseEntry = {
   id: string;
-  date: string;       // YYYY-MM-DD
+  date: string;
   sets: SetEntry[];
   maxWeight: number;
 };
@@ -63,13 +63,13 @@ export type TrainingSplit = {
 export type SubjectItem = {
   name: string;
   color: string;
-  icon?: string; // optional Ionicons name
+  icon?: string;
 };
 
 export type WorkSession = {
   id: string;
   subject: string;
-  duration: number; // minutes
+  duration: number;
 };
 
 export type GradeCategory = 'Klausur' | 'Mündlich' | 'Praktisch' | 'Test' | 'Präsentation';
@@ -85,29 +85,37 @@ export type CategoryWeights = {
 export type GradeSubject = {
   id: string;
   name: string;
-  isLK: boolean;           // Leistungskurs — zählt doppelt
-  weights: CategoryWeights; // müssen zusammen 100 ergeben
+  isLK: boolean;
+  weights: CategoryWeights;
 };
 
 export type GradeEntry = {
   id: string;
   subjectId: string;
   subject: string;
-  points: number;          // 0-15
+  points: number;
   category: GradeCategory;
   label: string;
-  date: string;            // YYYY-MM-DD
+  date: string;
   semester: 1 | 2 | 3 | 4;
-  weight: number;          // individuelle Gewichtung, default 1
+  weight: number;
 };
 
 // ── Projects ──────────────────────────────────────────────────────────────────
+
+export type Subtask = {
+  id: string;
+  title: string;
+  done: boolean;
+};
 
 export type KanbanCard = {
   id: string;
   title: string;
   tags: string[];
   priority: 'low' | 'medium' | 'high';
+  effort: 1 | 2 | 3 | 5 | 8;  // story points
+  subtasks: Subtask[];
 };
 
 export type KanbanColumn = {
@@ -119,6 +127,6 @@ export type KanbanColumn = {
 // ── Store ─────────────────────────────────────────────────────────────────────
 
 export type WeekData = {
-  weekOf: string; // YYYY-MM-DD of that Monday
+  weekOf: string;
   data: number[];
 };

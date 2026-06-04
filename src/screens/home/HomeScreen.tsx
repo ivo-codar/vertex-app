@@ -59,66 +59,108 @@ export default function HomeScreen() {
     }
   };
 
-  // Routine modal
+  const todayISO = today.toISOString().split('T')[0];
+  const isCompletedToday = (rt: Routine) => (rt.completedDates ?? []).includes(todayISO);
+
+  // ── Routine modal (add + edit) ────────────────────────────────────────────
   const [showRoutineModal, setShowRoutineModal] = useState(false);
+  const [editingRoutineId, setEditingRoutineId] = useState<string | null>(null);
   const [newName, setNewName]   = useState('');
   const [newTime, setNewTime]   = useState('');
   const [newDays, setNewDays]   = useState<number[]>([]);
   const toggleNewDay = (i: number) =>
     setNewDays(prev => prev.includes(i) ? prev.filter(d => d !== i) : [...prev, i].sort());
 
-  // Event modal
-  const [showEventModal, setShowEventModal] = useState(false);
-  const [newTitle, setNewTitle]   = useState('');
-  const [newIsoDate, setNewIsoDate] = useState<string | null>(null);
-  const [newTag, setNewTag]       = useState('Klausur');
+  const openAddRoutine = () => {
+    setEditingRoutineId(null); setNewName(''); setNewTime(''); setNewDays([]);
+    setShowRoutineModal(true);
+  };
+  const openEditRoutine = (rt: Routine) => {
+    setEditingRoutineId(rt.id); setNewName(rt.title);
+    setNewTime(rt.time ?? ''); setNewDays(rt.days);
+    setShowRoutineModal(true);
+  };
 
-  // Actions
+  // ── Event modal (add + edit) ──────────────────────────────────────────────
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [newTitle, setNewTitle]     = useState('');
+  const [newIsoDate, setNewIsoDate] = useState<string | null>(null);
+  const [newTag, setNewTag]         = useState('Klausur');
+
+  const openAddEvent = () => {
+    setEditingEventId(null); setNewTitle(''); setNewIsoDate(null); setNewTag('Klausur');
+    setShowEventModal(true);
+  };
+  const openEditEvent = (ev: CalendarEvent) => {
+    setEditingEventId(ev.id); setNewTitle(ev.title);
+    setNewIsoDate(ev.isoDate); setNewTag(ev.tag);
+    setShowEventModal(true);
+  };
+
+  // ── Actions ───────────────────────────────────────────────────────────────
+
   const toggleRoutine = (id: string) => {
     setRoutines(prev => prev.map(rt => {
       if (rt.id !== id) return rt;
-      const done = !rt.completed;
-      if (done) recordStreakDay();
-      return { ...rt, completed: done, streak: done ? rt.streak + 1 : rt.streak };
+      const wasDone = isCompletedToday(rt);
+      const completedDates = wasDone
+        ? (rt.completedDates ?? []).filter(d => d !== todayISO)
+        : [...(rt.completedDates ?? []), todayISO];
+      // Streak only on first completion, never decrements
+      if (!wasDone) recordStreakDay();
+      return { ...rt, completedDates };
     }));
   };
 
-  const addRoutine = () => {
+  const saveRoutine = () => {
     if (!newName.trim()) return;
-    setRoutines(prev => [...prev, {
-      id: Date.now().toString(),
-      title: newName.trim(),
-      streak: 0, completed: false,
-      time: newTime.trim() || undefined,
-      days: newDays,
-    }]);
+    if (editingRoutineId) {
+      setRoutines(prev => prev.map(rt => rt.id === editingRoutineId
+        ? { ...rt, title: newName.trim(), time: newTime.trim() || undefined, days: newDays }
+        : rt
+      ));
+    } else {
+      setRoutines(prev => [...prev, {
+        id: Date.now().toString(),
+        title: newName.trim(),
+        streak: 0,
+        completedDates: [],
+        time: newTime.trim() || undefined,
+        days: newDays,
+      }]);
+    }
     setNewName(''); setNewTime(''); setNewDays([]);
     setShowRoutineModal(false);
   };
 
-  const addEvent = async () => {
+  const saveEvent = async () => {
     if (!newTitle.trim() || !newIsoDate) return;
-    const newEvent: CalendarEvent = {
-      id: Date.now().toString(),
-      title: newTitle.trim(),
-      isoDate: newIsoDate,
-      tag: newTag,
-    };
-    setEvents(prev => [...prev, newEvent]);
-    // Schedule 24h reminder
-    const notifId = await scheduleEventReminder(newEvent);
-    if (notifId) update(s => ({ notifMap: { ...s.notifMap, [newEvent.id]: notifId } }));
-    setNewTitle(''); setNewIsoDate(null); setNewTag('Klausur');
+    if (editingEventId) {
+      // Edit existing — reschedule notification
+      const oldNid = notifMap[editingEventId];
+      if (oldNid) cancelEventReminder(oldNid);
+      const updated: CalendarEvent = { id: editingEventId, title: newTitle.trim(), isoDate: newIsoDate, tag: newTag };
+      setEvents(prev => prev.map(e => e.id === editingEventId ? updated : e));
+      const nid = await scheduleEventReminder(updated);
+      if (nid) update(s => ({ notifMap: { ...s.notifMap, [editingEventId]: nid } }));
+    } else {
+      const newEvent: CalendarEvent = { id: Date.now().toString(), title: newTitle.trim(), isoDate: newIsoDate, tag: newTag };
+      setEvents(prev => [...prev, newEvent]);
+      const nid = await scheduleEventReminder(newEvent);
+      if (nid) update(s => ({ notifMap: { ...s.notifMap, [newEvent.id]: nid } }));
+    }
+    setNewTitle(''); setNewIsoDate(null); setNewTag('Klausur'); setEditingEventId(null);
     setShowEventModal(false);
   };
 
-  // Derived
-  const todayRoutines = routines.filter(rt => rt.days.length === 0 || rt.days.includes(todayDow));
-  const done  = todayRoutines.filter(rt => rt.completed).length;
-  const total = todayRoutines.length;
-  const pct   = total > 0 ? done / total : 0;
+  // ── Derived ───────────────────────────────────────────────────────────────
 
-  // Sort events by date
+  const todayRoutines = routines.filter(rt => rt.days.length === 0 || rt.days.includes(todayDow));
+  const doneCount = todayRoutines.filter(rt => isCompletedToday(rt)).length;
+  const total     = todayRoutines.length;
+  const pct       = total > 0 ? doneCount / total : 0;
+
   const sortedEvents = [...events].sort((a, b) => a.isoDate.localeCompare(b.isoDate));
 
   return (
@@ -141,7 +183,7 @@ export default function HomeScreen() {
                 <View style={s.progressBg}>
                   <View style={[s.progressFill, { width: `${Math.round(pct * 100)}%` as any }]} />
                 </View>
-                <Text style={s.progressCaption}>{done}/{total} erledigt</Text>
+                <Text style={s.progressCaption}>{doneCount}/{total} erledigt</Text>
               </View>
             ) : (
               <Text style={s.hintText}>Füge Routinen hinzu ↓</Text>
@@ -187,9 +229,8 @@ export default function HomeScreen() {
                       {dNum}
                     </Text>
                   </View>
-                  {(isToday || hasEvent) && (
-                    <View style={[s.todayDot, hasEvent && !isToday && { backgroundColor: colors.blue }]} />
-                  )}
+                  {isToday && <View style={s.todayDot} />}
+                  {!isToday && hasEvent && <View style={[s.todayDot, { backgroundColor: colors.blue }]} />}
                 </View>
               );
             })}
@@ -197,56 +238,56 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         {/* ── Routines ── */}
-        <SectionRow title="Routinen heute" onAdd={() => setShowRoutineModal(true)} />
+        <SectionRow title="Routinen heute" onAdd={openAddRoutine} />
         {todayRoutines.length === 0 ? (
           <EmptyCard
             icon="checkmark-circle-outline"
-            text={routines.length > 0 ? 'Heute keine Routinen geplant.' : 'Noch keine Routinen.'}
+            text={routines.length > 0 ? 'Heute keine Routinen geplant.' : 'Noch keine Routinen — tippe +'}
             sub="Tippe + um deine erste hinzuzufügen."
           />
         ) : (
-          todayRoutines.map(rt => (
-            <View key={rt.id} style={[s.routineCard, rt.completed && s.routineCardDone]}>
-              <View style={[s.leftAccent, { backgroundColor: rt.completed ? colors.accent : colors.border }]} />
-              <TouchableOpacity
-                style={[s.checkbox, rt.completed && s.checkboxDone]}
-                onPress={() => toggleRoutine(rt.id)}
-              >
-                {rt.completed && <Ionicons name="checkmark" size={12} color={colors.bg} />}
-              </TouchableOpacity>
-              <TouchableOpacity style={{ flex: 1 }} onPress={() => toggleRoutine(rt.id)}>
-                <Text style={[s.routineTitle, rt.completed && s.strikethru]}>{rt.title}</Text>
-                <View style={s.routineMeta}>
-                  {rt.time && (
-                    <View style={s.timeBadge}>
-                      <Ionicons name="time-outline" size={10} color={colors.textMuted} />
-                      <Text style={s.timeText}>{rt.time}</Text>
-                    </View>
-                  )}
-                  {rt.days.length > 0 && (
-                    <View style={s.daysRow}>
-                      {WEEKDAYS.map((d, i) => (
-                        <Text key={d} style={[s.dayPip, rt.days.includes(i) && s.dayPipActive]}>{d}</Text>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              </TouchableOpacity>
-              {rt.streak > 0 && (
-                <View style={s.streakPill}>
-                  <Ionicons name="flame" size={11} color={colors.amber} />
-                  <Text style={s.streakPillText}>{rt.streak}</Text>
-                </View>
-              )}
-              <TouchableOpacity style={s.iconBtn} onPress={() => setRoutines(p => p.filter(r => r.id !== rt.id))}>
-                <Ionicons name="close" size={15} color={colors.textMuted} />
-              </TouchableOpacity>
-            </View>
-          ))
+          todayRoutines.map(rt => {
+            const done = isCompletedToday(rt);
+            return (
+              <View key={rt.id} style={[s.routineCard, done && s.routineCardDone]}>
+                <View style={[s.leftAccent, { backgroundColor: done ? colors.accent : colors.border }]} />
+                <TouchableOpacity
+                  style={[s.checkbox, done && s.checkboxDone]}
+                  onPress={() => toggleRoutine(rt.id)}
+                >
+                  {done && <Ionicons name="checkmark" size={12} color={colors.bg} />}
+                </TouchableOpacity>
+                <TouchableOpacity style={{ flex: 1 }} onPress={() => toggleRoutine(rt.id)}>
+                  <Text style={[s.routineTitle, done && s.strikethru]}>{rt.title}</Text>
+                  <View style={s.routineMeta}>
+                    {rt.time && (
+                      <View style={s.timeBadge}>
+                        <Ionicons name="time-outline" size={10} color={colors.textMuted} />
+                        <Text style={s.timeText}>{rt.time}</Text>
+                      </View>
+                    )}
+                    {rt.days.length > 0 && (
+                      <View style={s.daysRow}>
+                        {WEEKDAYS.map((d, i) => (
+                          <Text key={d} style={[s.dayPip, rt.days.includes(i) && s.dayPipActive]}>{d}</Text>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity style={s.iconBtn} onPress={() => openEditRoutine(rt)}>
+                  <Ionicons name="pencil" size={13} color={colors.blue} />
+                </TouchableOpacity>
+                <TouchableOpacity style={s.iconBtn} onPress={() => setRoutines(p => p.filter(r => r.id !== rt.id))}>
+                  <Ionicons name="close" size={15} color={colors.textMuted} />
+                </TouchableOpacity>
+              </View>
+            );
+          })
         )}
 
         {/* ── Events ── */}
-        <SectionRow title="Demnächst" onAdd={() => setShowEventModal(true)} />
+        <SectionRow title="Demnächst" onAdd={openAddEvent} />
         {sortedEvents.length === 0 ? (
           <EmptyCard
             icon="calendar-outline"
@@ -272,6 +313,9 @@ export default function HomeScreen() {
                 <View style={[s.tag, { backgroundColor: cfg.bg }]}>
                   <Text style={[s.tagText, { color: cfg.text }]}>{ev.tag}</Text>
                 </View>
+                <TouchableOpacity style={s.iconBtn} onPress={() => openEditEvent(ev)}>
+                  <Ionicons name="pencil" size={13} color={colors.blue} />
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={s.iconBtn}
                   onPress={() => {
@@ -307,7 +351,7 @@ export default function HomeScreen() {
           <TouchableOpacity style={m.overlay} activeOpacity={1} onPress={() => setShowRoutineModal(false)} />
           <View style={m.sheet}>
             <View style={m.handle} />
-            <Text style={m.title}>Routine hinzufügen</Text>
+            <Text style={m.title}>{editingRoutineId ? 'Routine bearbeiten' : 'Routine hinzufügen'}</Text>
             <TextInput style={m.input} placeholder="Name (z.B. Morning Run)" placeholderTextColor={colors.textMuted} value={newName} onChangeText={setNewName} autoFocus />
             <TextInput style={[m.input, { marginTop: sp.sm }]} placeholder="Uhrzeit (optional, z.B. 07:00)" placeholderTextColor={colors.textMuted} value={newTime} onChangeText={setNewTime} />
             <Text style={[font.label, { marginTop: sp.md, marginBottom: sp.sm }]}>
@@ -328,7 +372,7 @@ export default function HomeScreen() {
               <TouchableOpacity style={m.btnCancel} onPress={() => setShowRoutineModal(false)}>
                 <Text style={{ color: colors.textSub }}>Abbrechen</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={m.btnSave} onPress={addRoutine}>
+              <TouchableOpacity style={m.btnSave} onPress={saveRoutine}>
                 <Text style={{ color: colors.bg, fontWeight: '700' }}>Speichern</Text>
               </TouchableOpacity>
             </View>
@@ -342,7 +386,7 @@ export default function HomeScreen() {
           <TouchableOpacity style={m.overlay} activeOpacity={1} onPress={() => setShowEventModal(false)} />
           <View style={m.sheet}>
             <View style={m.handle} />
-            <Text style={m.title}>Termin hinzufügen</Text>
+            <Text style={m.title}>{editingEventId ? 'Termin bearbeiten' : 'Termin hinzufügen'}</Text>
             <TextInput
               style={m.input}
               placeholder="Titel (z.B. Mathe Klausur)"
@@ -374,7 +418,7 @@ export default function HomeScreen() {
               <TouchableOpacity style={m.btnCancel} onPress={() => setShowEventModal(false)}>
                 <Text style={{ color: colors.textSub }}>Abbrechen</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={m.btnSave} onPress={addEvent}>
+              <TouchableOpacity style={m.btnSave} onPress={saveEvent}>
                 <Text style={{ color: colors.bg, fontWeight: '700' }}>Speichern</Text>
               </TouchableOpacity>
             </View>
