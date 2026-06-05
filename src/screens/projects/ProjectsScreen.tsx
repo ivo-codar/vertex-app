@@ -243,8 +243,9 @@ export default function ProjectsScreen() {
       </ScrollView>
 
       {/* ── Card Action Sheet ── */}
-      <Modal visible={!!actionSheet} transparent animationType="fade" onRequestClose={() => setActionSheet(null)}>
-        <TouchableOpacity style={as.overlay} activeOpacity={1} onPress={() => setActionSheet(null)} />
+      <Modal visible={!!actionSheet} transparent animationType="slide" onRequestClose={() => setActionSheet(null)}>
+        <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+          <TouchableOpacity style={as.backdrop} activeOpacity={1} onPress={() => setActionSheet(null)} />
         {actionSheet && (
           <View style={as.sheet}>
             <Text style={as.cardTitle} numberOfLines={1}>{actionSheet.card.title}</Text>
@@ -301,6 +302,7 @@ export default function ProjectsScreen() {
             </TouchableOpacity>
           </View>
         )}
+        </View>
       </Modal>
 
       {/* Add Card Modal */}
@@ -757,13 +759,11 @@ const s = StyleSheet.create({
 
 // ── Card Action Sheet styles ──────────────────────────────────────────────────
 const as = StyleSheet.create({
-  overlay: {
+  backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.75)',
   },
   sheet: {
-    position: 'absolute',
-    bottom: 0, left: 0, right: 0,
     backgroundColor: colors.surface,
     borderTopLeftRadius: r.xxl, borderTopRightRadius: r.xxl,
     padding: sp.lg, paddingBottom: 40,

@@ -423,9 +423,9 @@ export default function GymScreen() {
 
                   {ex.sets.map((set, si) => (
                     <View key={set.id} style={[s.setRow, set.done && s.setRowDone]}>
-                      <Text style={s.setNumFixed}>{si + 1}</Text>
+                      <Text style={s.setN}>{si + 1}</Text>
                       <TextInput
-                        style={[s.setInput, { flex: 1 }]}
+                        style={s.setIn}
                         value={set.weight}
                         onChangeText={v => updateSet(exIdx, si, 'weight', v)}
                         placeholder="—"
@@ -434,7 +434,7 @@ export default function GymScreen() {
                         editable={!set.done}
                       />
                       <TextInput
-                        style={[s.setInput, { flex: 1 }]}
+                        style={s.setIn}
                         value={set.reps}
                         onChangeText={v => updateSet(exIdx, si, 'reps', v)}
                         placeholder="—"
@@ -443,14 +443,17 @@ export default function GymScreen() {
                         editable={!set.done}
                       />
                       <TouchableOpacity
-                          style={[s.checkBtn, set.done && s.checkBtnDone]}
-                          onPress={() => toggleSetDone(exIdx, si)}
-                        >
-                          {set.done && <Ionicons name="checkmark" size={12} color={colors.bg} />}
-                        </TouchableOpacity>
-                        <TouchableOpacity style={s.removeSetBtn} onPress={() => removeSet(exIdx, si)}>
-                          <Ionicons name="close" size={14} color={colors.textMuted} />
-                        </TouchableOpacity>
+                        style={[s.setCheck, set.done && s.setCheckDone]}
+                        onPress={() => toggleSetDone(exIdx, si)}
+                      >
+                        {set.done
+                          ? <Ionicons name="checkmark" size={16} color={colors.bg} />
+                          : <Ionicons name="checkmark-outline" size={14} color={colors.accent} />
+                        }
+                      </TouchableOpacity>
+                      <TouchableOpacity style={s.setDel} onPress={() => removeSet(exIdx, si)}>
+                        <Ionicons name="close" size={14} color={colors.textMuted} />
+                      </TouchableOpacity>
                     </View>
                   ))}
 
@@ -967,10 +970,14 @@ const s = StyleSheet.create({
 
   setsHeader: { flexDirection: 'row', paddingBottom: sp.xs, borderBottomWidth: 1, borderBottomColor: colors.border, marginBottom: sp.xs },
   setCol: { fontSize: 10, fontWeight: '700', color: colors.textMuted, textAlign: 'center' },
-  setRow: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, paddingVertical: 5 },
-  setRowDone: { opacity: 0.6 },
-  setNumFixed: { width: 22, fontSize: 13, fontWeight: '600', color: colors.textMuted, textAlign: 'center' },
-  removeSetBtn: { width: 28, height: 36, alignItems: 'center', justifyContent: 'center' },
+  setRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, borderTopWidth: 1, borderTopColor: colors.border },
+  setRowDone: { opacity: 0.65 },
+  // Fixed-width cells — flexShrink:0 prevents collapse on web
+  setN:  { width: 22, textAlign: 'center', fontSize: 13, fontWeight: '600', color: colors.textMuted, flexShrink: 0 },
+  setIn: { flex: 1, height: 44, minWidth: 50, backgroundColor: colors.bg, borderRadius: r.sm, color: colors.text, fontSize: 16, fontWeight: '700', textAlign: 'center', borderWidth: 1, borderColor: colors.border },
+  setCheck: { width: 44, height: 44, flexShrink: 0, borderRadius: r.md, borderWidth: 2, borderColor: colors.accent, backgroundColor: colors.accentDim, alignItems: 'center', justifyContent: 'center' },
+  setCheckDone: { backgroundColor: colors.accent, borderColor: colors.accent },
+  setDel: { width: 28, height: 44, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
   setNum: { fontSize: 13, fontWeight: '600', color: colors.textMuted, textAlign: 'center' },
   setInput: { backgroundColor: colors.bg, borderRadius: r.sm, paddingVertical: 6, color: colors.text, fontSize: 15, fontWeight: '600', textAlign: 'center', borderWidth: 1, borderColor: colors.border },
   checkBtn: { width: 38, height: 38, borderRadius: r.md, borderWidth: 2, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
