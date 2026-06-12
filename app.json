@@ -7,7 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "backgroundColor": "#06060C"
+      "backgroundColor": "#05060B"
     },
     "ios": {
       "supportsTablet": false,
@@ -16,7 +16,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#06060C"
+        "backgroundColor": "#05060B"
       },
       "package": "com.personal.vertex"
     },
@@ -27,8 +27,8 @@
       "name": "Vertex",
       "shortName": "Vertex",
       "lang": "de",
-      "themeColor": "#06060C",
-      "backgroundColor": "#06060C",
+      "themeColor": "#05060B",
+      "backgroundColor": "#05060B",
       "description": "Dein persönlicher Produktivitäts-Tracker"
     },
     "plugins": [

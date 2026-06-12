@@ -23,9 +23,14 @@
         flex: 1;
       }
     </style>
-  <meta name="theme-color" content="#06060C">
+  <meta name="theme-color" content="#05060B">
 <meta name="description" content="Dein persönlicher Produktivitäts-Tracker">
-<link rel="icon" href="/favicon.ico" /><link rel="preload" href="/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/AntDesign.3f78af31cca60105799838a1a7a59fbd.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="icon" href="/favicon.ico" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap">
+<link rel="preload" href="/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/AntDesign.3f78af31cca60105799838a1a7a59fbd.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Entypo.31b5ffea3daddc69dd01a1f3d6cf63c5.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/EvilIcons.140c53a7643ea949007aa9a282153849.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Feather.ca4b48e04dc1ce10bfbddb262c8b835f.ttf" as="font" type="font/ttf" crossorigin>
@@ -66,16 +71,18 @@
 @font-face{font-family:'SimpleLineIcons';src:url('/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/SimpleLineIcons.d2285965fe34b05465047401b8595dd0.ttf') format('truetype');font-display:block;}
 @font-face{font-family:'Zocial';src:url('/assets/node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Zocial.1681f34aaca71b8dfb70756bca331eb2.ttf') format('truetype');font-display:block;}
 
-  html{background-color:#06060C;-webkit-text-size-adjust:100%;}
+  html{background-color:#05060B;-webkit-text-size-adjust:100%;}
   body{
-    background-color:#06060C;
+    background-color:#05060B;
+    font-family:'Inter',system-ui,sans-serif;
     padding-top:env(safe-area-inset-top);
     padding-bottom:env(safe-area-inset-bottom);
     padding-left:env(safe-area-inset-left);
     padding-right:env(safe-area-inset-right);
     -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
   }
-  #root{background-color:#06060C;}
+  #root{background-color:#05060B;}
   *{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;touch-action:manipulation;}
   *{-webkit-user-select:none;user-select:none;}
   input,textarea{-webkit-user-select:text;user-select:text;font-size:16px;}
@@ -89,6 +96,6 @@
     </noscript>
     <!-- The root element for your Expo app. -->
     <div id="root"></div>
-  <script type="module" src="/_expo/static/js/web/AppEntry-30bed3265afa27b438f9af4649e105d3.js"></script>
+  <script type="module" src="/_expo/static/js/web/AppEntry-b56df502f345ca597a570588ae7b724c.js"></script>
 </body>
 </html>

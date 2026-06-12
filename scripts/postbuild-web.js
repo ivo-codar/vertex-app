@@ -32,26 +32,37 @@ if (fs.existsSync(fontDir)) {
   });
 }
 
-// ── 3. Mobile CSS + background ────────────────────────────────────────────────
+// ── 3. Google Fonts — Sora (display), Inter (UI), JetBrains Mono (data) ───────
+const googleFonts = `
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap">
+`;
+
+// ── 4. Mobile CSS + background ────────────────────────────────────────────────
+const BG = '#05060B';
 const mobileCSS = `
 <style id="vertex-mobile">
   ${fontCSS}
-  html{background-color:#06060C;-webkit-text-size-adjust:100%;}
+  html{background-color:${BG};-webkit-text-size-adjust:100%;}
   body{
-    background-color:#06060C;
+    background-color:${BG};
+    font-family:'Inter',system-ui,sans-serif;
     padding-top:env(safe-area-inset-top);
     padding-bottom:env(safe-area-inset-bottom);
     padding-left:env(safe-area-inset-left);
     padding-right:env(safe-area-inset-right);
     -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
   }
-  #root{background-color:#06060C;}
+  #root{background-color:${BG};}
   *{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;touch-action:manipulation;}
   *{-webkit-user-select:none;user-select:none;}
   input,textarea{-webkit-user-select:text;user-select:text;font-size:16px;}
 </style>`;
 
-html = html.replace('</head>', preloads + mobileCSS + '\n</head>');
+html = html.replace('</head>', googleFonts + preloads + mobileCSS + '\n</head>');
 
 // ── 4. type="module" — fixes import.meta (Zustand v5 ESM) ─────────────────────
 html = html.replace(
