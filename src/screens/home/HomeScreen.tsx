@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, sp, r, font, fx } from '../../theme';
+import { colors, sp, r, font, fx, ff } from '../../theme';
 import { Routine, CalendarEvent } from '../../types';
 import CalendarModal from '../../components/CalendarModal';
 import MiniCalendarPicker from '../../components/MiniCalendarPicker';
@@ -489,10 +489,10 @@ function EmptyCard({ icon, text, sub }: {
 }
 
 const sr = StyleSheet.create({
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: sp.xl, marginBottom: sp.sm },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: sp.xl, marginBottom: sp.md },
   titleWrap: { flexDirection: 'row', alignItems: 'center', gap: sp.sm },
-  line: { width: 18, height: 2, borderRadius: 1, backgroundColor: colors.accent },
-  addBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+  line: { width: 3, height: 14, borderRadius: 2, backgroundColor: colors.accent, ...fx.goldGlow },
+  addBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', ...fx.goldGlow },
 });
 
 const ec = StyleSheet.create({
@@ -534,20 +534,22 @@ const s = StyleSheet.create({
     paddingTop: sp.lg, paddingBottom: sp.md,
     gap: sp.md,
   },
-  kicker: { fontSize: 12, fontWeight: '700', color: colors.accent, letterSpacing: 1.4, marginBottom: 4 },
-  dateText: { fontSize: 22, fontWeight: '800', color: colors.text, letterSpacing: -0.4 },
-  hintText: { fontSize: 13, color: colors.textMuted, marginTop: 4 },
-  progressRow: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, marginTop: 6 },
-  progressBg: { flex: 1, height: 3, backgroundColor: colors.border, borderRadius: 2, overflow: 'hidden' },
+  kicker: { fontFamily: ff.mono, fontSize: 11, fontWeight: '700', color: colors.accent, letterSpacing: 2.5, marginBottom: 5, textTransform: 'uppercase' },
+  dateText: { fontFamily: ff.display, fontSize: 24, fontWeight: '800', color: colors.text, letterSpacing: -0.6 },
+  hintText: { fontFamily: ff.body, fontSize: 13, color: colors.textMuted, marginTop: 5 },
+  progressRow: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, marginTop: 8 },
+  progressBg: { flex: 1, height: 4, backgroundColor: colors.border, borderRadius: 2, overflow: 'hidden' },
   progressFill: { height: '100%', backgroundColor: colors.accent, borderRadius: 2 },
-  progressCaption: { fontSize: 12, fontWeight: '600', color: colors.textSub },
+  progressCaption: { fontFamily: ff.mono, fontSize: 12, fontWeight: '600', color: colors.textSub },
   streakPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
+    flexDirection: 'row', alignItems: 'center', gap: 5,
     backgroundColor: colors.amberDim,
-    paddingHorizontal: sp.sm, paddingVertical: sp.xs,
+    paddingHorizontal: sp.md, paddingVertical: sp.sm,
     borderRadius: r.full,
+    borderWidth: 1, borderColor: colors.amber + '40',
+    ...fx.goldGlow, shadowColor: colors.amber,
   },
-  streakPillNum: { fontSize: 14, fontWeight: '700', color: colors.amber },
+  streakPillNum: { fontFamily: ff.mono, fontSize: 16, fontWeight: '700', color: colors.amber },
 
   // ── Calendar strip ─────────────────────────────────────────────────────────
   calCard: {
@@ -557,17 +559,17 @@ const s = StyleSheet.create({
     borderTopColor: colors.accent + '66',
   },
   calHint: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: sp.md },
-  calHintText: { fontSize: 12, fontWeight: '500', color: colors.textMuted },
-  calHintLink: { fontSize: 12, color: colors.textMuted },
+  calHintText: { fontFamily: ff.mono, fontSize: 11, fontWeight: '600', color: colors.textMuted, letterSpacing: 1, textTransform: 'uppercase' },
+  calHintLink: { fontFamily: ff.body, fontSize: 12, fontWeight: '600', color: colors.accent },
   weekRow: { flexDirection: 'row' },
-  dayCol: { flex: 1, alignItems: 'center', gap: 4 },
-  dayLabel: { fontSize: 12, fontWeight: '600', color: colors.textMuted },
+  dayCol: { flex: 1, alignItems: 'center', gap: 5 },
+  dayLabel: { fontFamily: ff.mono, fontSize: 11, fontWeight: '600', color: colors.textMuted, letterSpacing: 0.5 },
   dayLabelActive: { color: colors.accent, fontWeight: '700' },
   dayLabelPast: { opacity: 0.5 },
-  dayCircle: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
-  dayCircleActive: { backgroundColor: colors.accent },
-  dayNum: { fontSize: 15, fontWeight: '500', color: colors.textSub },
-  dayNumActive: { color: colors.bg, fontWeight: '700' },
+  dayCircle: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  dayCircleActive: { backgroundColor: colors.accent, ...fx.goldGlow },
+  dayNum: { fontFamily: ff.mono, fontSize: 15, fontWeight: '600', color: colors.textSub },
+  dayNumActive: { color: colors.bg, fontWeight: '800' },
   dayNumPast: { color: colors.textMuted },
   todayDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.accent },
 
@@ -594,10 +596,10 @@ const s = StyleSheet.create({
   timeBadge: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   timeText: { fontSize: 12, color: colors.textMuted },
   daysRow: { flexDirection: 'row', gap: 3 },
-  dayPip: { fontSize: 10, fontWeight: '600', color: colors.textMuted, opacity: 0.5 },
+  dayPip: { fontFamily: ff.mono, fontSize: 10, fontWeight: '600', color: colors.textMuted, opacity: 0.5 },
   dayPipActive: { color: colors.accent, opacity: 1 },
-  streakPill: { flexDirection: 'row', alignItems: 'center', gap: 3, marginRight: sp.xs },
-  streakPillText: { fontSize: 13, fontWeight: '600', color: colors.amber },
+  streakPillMini: { flexDirection: 'row', alignItems: 'center', gap: 3, marginRight: sp.xs },
+  streakPillText: { fontFamily: ff.mono, fontSize: 13, fontWeight: '600', color: colors.amber },
   iconBtn: { padding: sp.sm },
 
   // ── Event cards ────────────────────────────────────────────────────────────

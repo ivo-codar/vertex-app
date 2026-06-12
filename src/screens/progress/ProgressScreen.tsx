@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, sp, r, font, fx } from '../../theme';
+import { colors, sp, r, font, fx, ff } from '../../theme';
 import { useStore } from '../../store';
 import WeeklyChart from '../../components/WeeklyChart';
 import { SimpleBarChart, StatBox } from '../../components/SharedCharts';
@@ -666,18 +666,18 @@ const al = StyleSheet.create({
   toxinCard: { borderColor: 'rgba(192,57,43,0.35)' },
 
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: sp.sm },
-  title:  { fontSize: 11, fontWeight: '800', color: colors.textSub, letterSpacing: 1.5 },
-  subtitle: { fontSize: 10, color: colors.textMuted, marginTop: 2, letterSpacing: 0.5 },
-  statusBadge: { paddingHorizontal: sp.sm, paddingVertical: 4, borderRadius: r.sm },
-  statusLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  title:  { fontFamily: ff.display, fontSize: 13, fontWeight: '800', color: colors.text, letterSpacing: 0.5 },
+  subtitle: { fontFamily: ff.mono, fontSize: 10, color: colors.textMuted, marginTop: 3, letterSpacing: 1 },
+  statusBadge: { paddingHorizontal: sp.md, paddingVertical: 5, borderRadius: r.sm, borderWidth: 1, borderColor: 'transparent' },
+  statusLabel: { fontFamily: ff.mono, fontSize: 12, fontWeight: '800', letterSpacing: 1.5 },
 
-  scoreNum: { fontSize: 40, fontWeight: '900', letterSpacing: -2, textAlign: 'center', marginVertical: sp.xs },
-  scoreSub: { fontSize: 12, color: colors.textMuted, textAlign: 'center', marginBottom: sp.md },
+  scoreNum: { fontFamily: ff.mono, fontSize: 48, fontWeight: '800', letterSpacing: -2, textAlign: 'center', marginVertical: sp.xs },
+  scoreSub: { fontFamily: ff.body, fontSize: 13, color: colors.textMuted, textAlign: 'center', marginBottom: sp.md },
 
   // ── Horizontal bar ──────────────────────────────────────────────────────────
   barWrap: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, marginBottom: sp.md },
-  barLabelLeft:  { fontSize: 9, fontWeight: '800', color: '#8B0000',    letterSpacing: 0.5, width: 36 },
-  barLabelRight: { fontSize: 9, fontWeight: '800', color: colors.accent, letterSpacing: 0.5, width: 54, textAlign: 'right' },
+  barLabelLeft:  { fontFamily: ff.mono, fontSize: 9, fontWeight: '800', color: '#8B0000',    letterSpacing: 1, width: 38 },
+  barLabelRight: { fontFamily: ff.mono, fontSize: 9, fontWeight: '800', color: colors.accent, letterSpacing: 1, width: 58, textAlign: 'right' },
   track: {
     flex: 1, height: 12, flexDirection: 'row',
     backgroundColor: colors.bg, borderRadius: r.full,
@@ -687,20 +687,20 @@ const al = StyleSheet.create({
     flex: 1, flexDirection: 'row', justifyContent: 'flex-end',
     overflow: 'hidden',
   },
-  negFill: { height: '100%', backgroundColor: '#C0392B', borderRadius: r.full },
+  negFill: { height: '100%', backgroundColor: colors.red, borderRadius: r.full, ...fx.blueGlow, shadowColor: colors.red },
   centerLine: { width: 2, backgroundColor: colors.textMuted, opacity: 0.4 },
   posHalf: { flex: 1, overflow: 'hidden' },
-  posFill: { height: '100%', backgroundColor: colors.accent, borderRadius: r.full },
+  posFill: { height: '100%', backgroundColor: colors.accent, borderRadius: r.full, ...fx.goldGlow },
 
   // ── Signal Sources ──────────────────────────────────────────────────────────
-  signalRow: { borderTopWidth: 1, borderTopColor: colors.border, paddingTop: sp.sm, marginTop: sp.xs },
-  signalTitle: { fontSize: 9, fontWeight: '800', color: colors.textMuted, letterSpacing: 1.5, marginBottom: sp.sm },
+  signalRow: { borderTopWidth: 1, borderTopColor: colors.border, paddingTop: sp.md, marginTop: sp.xs },
+  signalTitle: { fontFamily: ff.mono, fontSize: 9, fontWeight: '800', color: colors.textMuted, letterSpacing: 1.5, marginBottom: sp.sm },
   signals: { flexDirection: 'row', gap: sp.md, flexWrap: 'wrap', marginBottom: sp.sm },
   signal: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   signalEmoji: { fontSize: 14 },
-  signalTxt: { fontSize: 12, fontWeight: '700' },
-  signalEmpty: { fontSize: 11, color: colors.textMuted, fontStyle: 'italic' },
-  deltaLabel: { fontSize: 12, fontWeight: '800', letterSpacing: 0.5, textAlign: 'right' },
+  signalTxt: { fontFamily: ff.mono, fontSize: 12, fontWeight: '700' },
+  signalEmpty: { fontFamily: ff.mono, fontSize: 11, color: colors.textMuted, fontStyle: 'italic' },
+  deltaLabel: { fontFamily: ff.mono, fontSize: 12, fontWeight: '800', letterSpacing: 0.5, textAlign: 'right' },
 
   // ── Protocol Check ──────────────────────────────────────────────────────────
   protocolLabel: {

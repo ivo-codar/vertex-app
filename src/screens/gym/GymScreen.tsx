@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, sp, r, font, fx } from '../../theme';
+import { colors, sp, r, font, fx, ff } from '../../theme';
 import { ExerciseRecord, ExerciseEntry, SetEntry, TrainingSplit, SplitDay } from '../../types';
 import WeeklyChart from '../../components/WeeklyChart';
 import { SimpleBarChart, StatBox } from '../../components/SharedCharts';
@@ -915,9 +915,9 @@ const s = StyleSheet.create({
   content: { paddingHorizontal: 20 },
 
   pageHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: sp.lg, marginBottom: sp.sm },
-  kicker: { fontSize: 12, fontWeight: '800', color: colors.accent, letterSpacing: 1.3, marginBottom: 3 },
+  kicker: { fontFamily: ff.mono, fontSize: 11, fontWeight: '800', color: colors.accent, letterSpacing: 2.5, marginBottom: 4, textTransform: 'uppercase' },
   createSplitBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.accent, borderRadius: r.full, paddingHorizontal: sp.md, paddingVertical: 6 },
-  createSplitTxt: { fontSize: 13, fontWeight: '700', color: colors.bg },
+  createSplitTxt: { fontFamily: ff.body, fontSize: 13, fontWeight: '700', color: colors.bg },
 
   emptySection: { ...fx.card, alignItems: 'center', padding: sp.xl, gap: sp.md, marginTop: sp.md, borderRadius: r.xl },
   emptyTitle: { fontSize: 16, fontWeight: '600', color: colors.textSub },
@@ -936,10 +936,10 @@ const s = StyleSheet.create({
   dayChipText: { fontSize: 13, fontWeight: '700', color: colors.textSub },
   dayEditBtn: { padding: 3 },
   progressCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: r.md, padding: sp.md, marginBottom: sp.sm, borderWidth: 1, borderColor: colors.border, gap: sp.sm },
-  progressName: { fontSize: 15, fontWeight: '600', color: colors.text },
+  progressName: { fontFamily: ff.body, fontSize: 15, fontWeight: '600', color: colors.text },
   progressSub: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
   diffBadge: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: r.full },
-  diffTxt: { fontSize: 12, fontWeight: '700' },
+  diffTxt: { fontFamily: ff.mono, fontSize: 12, fontWeight: '700' },
   dayChipTextActive: { color: colors.bg },
   dayChipCount: { fontSize: 10, color: colors.textMuted, marginTop: 2 },
   startRow: { flexDirection: 'row', alignItems: 'center', gap: sp.md, marginTop: sp.md, paddingTop: sp.md, borderTopWidth: 1, borderTopColor: colors.border },
@@ -951,10 +951,10 @@ const s = StyleSheet.create({
   gymTabs: { flexDirection: 'row', backgroundColor: colors.card, borderRadius: r.md, padding: 4, marginTop: sp.md, marginBottom: sp.xs, borderWidth: 1, borderColor: colors.border, gap: 4 },
   gymTab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: sp.sm, paddingVertical: sp.sm, borderRadius: r.sm },
   gymTabActive: { backgroundColor: colors.accent },
-  gymTabTxt: { fontSize: 13, fontWeight: '700', color: colors.textSub },
+  gymTabTxt: { fontFamily: ff.body, fontSize: 13, fontWeight: '700', color: colors.textSub },
   gymTabTxtActive: { color: colors.bg },
   workoutHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.surface, paddingHorizontal: 20, paddingVertical: sp.sm, borderBottomWidth: 1, borderBottomColor: colors.accent + '40' },
-  workoutDayName: { fontSize: 18, fontWeight: '800', color: colors.accent },
+  workoutDayName: { fontFamily: ff.display, fontSize: 19, fontWeight: '800', color: colors.accent, letterSpacing: -0.3 },
   timerRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
   timerText: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },
   finishBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.accent, borderRadius: r.full, paddingHorizontal: sp.md, paddingVertical: 9 },
@@ -973,8 +973,8 @@ const s = StyleSheet.create({
   setRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, borderTopWidth: 1, borderTopColor: colors.border },
   setRowDone: { opacity: 0.65 },
   // Fixed-width cells — flexShrink:0 prevents collapse on web
-  setN:  { width: 22, textAlign: 'center', fontSize: 13, fontWeight: '600', color: colors.textMuted, flexShrink: 0 },
-  setIn: { flex: 1, height: 44, minWidth: 50, backgroundColor: colors.bg, borderRadius: r.sm, color: colors.text, fontSize: 16, fontWeight: '700', textAlign: 'center', borderWidth: 1, borderColor: colors.border },
+  setN:  { fontFamily: ff.mono, width: 22, textAlign: 'center', fontSize: 13, fontWeight: '600', color: colors.textMuted, flexShrink: 0 },
+  setIn: { fontFamily: ff.mono, flex: 1, height: 44, minWidth: 50, backgroundColor: colors.bg, borderRadius: r.sm, color: colors.text, fontSize: 17, fontWeight: '700', textAlign: 'center', borderWidth: 1, borderColor: colors.border },
   setCheck: { width: 44, height: 44, flexShrink: 0, borderRadius: r.md, borderWidth: 2, borderColor: colors.accent, backgroundColor: colors.accentDim, alignItems: 'center', justifyContent: 'center' },
   setCheckDone: { backgroundColor: colors.accent, borderColor: colors.accent },
   setDel: { width: 28, height: 44, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
@@ -990,7 +990,7 @@ const s = StyleSheet.create({
   addExTxt: { fontSize: 14, fontWeight: '600', color: colors.accent },
 
   recCard: { ...fx.card, flexDirection: 'row', alignItems: 'center', borderRadius: r.lg, padding: sp.md, marginBottom: sp.sm, gap: sp.sm },
-  recName: { fontSize: 14, fontWeight: '600', color: colors.text },
+  recName: { fontFamily: ff.body, fontSize: 15, fontWeight: '600', color: colors.text },
   recSub: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
   progBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 7, paddingVertical: 3, borderRadius: r.full },
   progTxt: { fontSize: 11, fontWeight: '700' },

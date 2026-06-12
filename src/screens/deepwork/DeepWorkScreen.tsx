@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, sp, r, font, fx } from '../../theme';
+import { colors, sp, r, font, fx, ff } from '../../theme';
 import { WorkSession, SubjectItem, GradeEntry } from '../../types';
 import GradeScreen from '../grades/GradeScreen';
 import WeeklyChart from '../../components/WeeklyChart';
@@ -591,7 +591,7 @@ function ModalBtns({ onCancel, onSave }: { onCancel: () => void; onSave: () => v
 
 const sc = StyleSheet.create({
   card: { ...fx.card, flex: 1, borderRadius: r.md, padding: sp.sm, alignItems: 'center', gap: 4 },
-  value: { fontSize: 22, fontWeight: '800' },
+  value: { fontFamily: ff.mono, fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
   label: { fontSize: 12, color: colors.textSub, fontWeight: '600' },
 });
 
@@ -616,7 +616,7 @@ const s = StyleSheet.create({
   content: { paddingHorizontal: 20 },
 
   pageHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: sp.lg, marginBottom: sp.sm },
-  kicker: { fontSize: 12, fontWeight: '800', color: colors.blue, letterSpacing: 1.3, marginBottom: 3 },
+  kicker: { fontFamily: ff.mono, fontSize: 11, fontWeight: '800', color: colors.blue, letterSpacing: 2.5, marginBottom: 4, textTransform: 'uppercase' },
   headerActions: { flexDirection: 'row', gap: sp.sm },
   headerBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: sp.sm, paddingVertical: 6, borderRadius: r.full, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   headerBtnGold: { borderColor: colors.accent + '60', backgroundColor: colors.accentDim },
@@ -633,7 +633,7 @@ const s = StyleSheet.create({
 
   timerCard: { ...fx.card, ...fx.blueLine, borderRadius: r.xl, padding: sp.xl, marginTop: sp.md, alignItems: 'center', gap: sp.lg },
   timerRing: { width: 168, height: 168, borderRadius: 84, borderWidth: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.02)' },
-  timerDisplay: { fontSize: 32, fontWeight: '700', color: colors.text, letterSpacing: -1 },
+  timerDisplay: { fontFamily: ff.mono, fontSize: 38, fontWeight: '700', color: colors.text, letterSpacing: -1 },
   timerSubject: { fontSize: 12, fontWeight: '600', marginTop: 4 },
   controls: { flexDirection: 'row', gap: sp.md },
   btn: { width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center' },

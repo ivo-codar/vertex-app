@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, r } from '../theme';
+import { colors, r, ff } from '../theme';
 
 const DAYS  = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 const BAR_H = 80;
@@ -66,7 +66,7 @@ const s = StyleSheet.create({
   },
   bars: { flexDirection: 'row', alignItems: 'flex-end', gap: 5, paddingBottom: 2 },
   col: { flex: 1, alignItems: 'center', gap: 4 },
-  valLabel: { fontSize: 11, fontWeight: '700', height: 14 },
+  valLabel: { fontFamily: ff.mono, fontSize: 11, fontWeight: '700', height: 14 },
   barBg: {
     width: '100%', height: BAR_H,
     backgroundColor: colors.cardDeep,
@@ -77,6 +77,6 @@ const s = StyleSheet.create({
     borderColor: colors.border,
   },
   barFill: { width: '100%', borderRadius: r.sm },
-  dayLabel: { fontSize: 11, fontWeight: '600', color: colors.textMuted },
+  dayLabel: { fontFamily: ff.mono, fontSize: 11, fontWeight: '600', color: colors.textMuted },
   dot: { width: 5, height: 5, borderRadius: 3 },
 });

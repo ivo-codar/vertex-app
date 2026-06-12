@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, sp, r, font, fx } from '../../theme';
+import { colors, sp, r, font, fx, ff } from '../../theme';
 import { KanbanColumn, KanbanCard, ThreatLevel } from '../../types';
 import WeeklyChart from '../../components/WeeklyChart';
 import { useStore, todayDow, INITIAL_BOARD } from '../../store';
@@ -553,7 +553,7 @@ const cs = StyleSheet.create({
     marginBottom: sp.sm,
   },
   threatBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 6, paddingVertical: 2, borderRadius: r.sm },
-  threatLabel: { fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
+  threatLabel: { fontFamily: ff.mono, fontSize: 9, fontWeight: '800', letterSpacing: 1 },
   arrows: { flexDirection: 'row', gap: 4 },
   arrow: { padding: 5, backgroundColor: colors.cardAlt, borderRadius: 4 },
   arrowFwd: { borderColor: colors.accentDim, borderWidth: 1 },
@@ -564,9 +564,9 @@ const cs = StyleSheet.create({
   cardFooter: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: sp.sm, alignItems: 'center' },
   subtaskToggle: { alignSelf: 'flex-end', padding: 4, marginTop: -sp.xs },
   effortBadge: { backgroundColor: colors.blueDim, borderRadius: r.full, paddingHorizontal: 6, paddingVertical: 2 },
-  effortTxt: { fontSize: 10, fontWeight: '700', color: colors.blue },
+  effortTxt: { fontFamily: ff.mono, fontSize: 10, fontWeight: '700', color: colors.blue },
   ddBadge: { backgroundColor: 'rgba(192,57,43,0.18)', borderRadius: r.full, paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: 'rgba(192,57,43,0.5)' },
-  ddBadgeTxt: { fontSize: 10, fontWeight: '900', color: colors.red },
+  ddBadgeTxt: { fontFamily: ff.mono, fontSize: 10, fontWeight: '900', color: colors.red },
   subtasksBadge: { backgroundColor: colors.accentDim, borderRadius: r.full, paddingHorizontal: 6, paddingVertical: 2 },
   subtasksTxt: { fontSize: 10, fontWeight: '700', color: colors.accent },
   subtasksWrap: { marginTop: sp.sm, paddingTop: sp.sm, borderTopWidth: 1, borderTopColor: colors.border },
@@ -635,7 +635,7 @@ const m = StyleSheet.create({
     flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: r.md,
     backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, gap: 4,
   },
-  threatLabel: { fontSize: 10, fontWeight: '800', color: colors.textMuted, letterSpacing: 0.5 },
+  threatLabel: { fontFamily: ff.mono, fontSize: 10, fontWeight: '800', color: colors.textMuted, letterSpacing: 1 },
 
   // ── Double Down ───────────────────────────────────────────────────────────
   ddBtn: {
@@ -674,7 +674,7 @@ const s = StyleSheet.create({
     paddingTop: sp.lg,
     paddingBottom: sp.sm,
   },
-  kicker: { fontSize: 12, fontWeight: '800', color: colors.teal, letterSpacing: 1.3, marginBottom: 3 },
+  kicker: { fontFamily: ff.mono, fontSize: 11, fontWeight: '800', color: colors.teal, letterSpacing: 2.5, marginBottom: 4, textTransform: 'uppercase' },
   fab: {
     width: 34,
     height: 34,
@@ -701,7 +701,7 @@ const s = StyleSheet.create({
     paddingVertical: 7,
   },
   summaryDot: { width: 6, height: 6, borderRadius: 3 },
-  summaryCount: { fontSize: 14, fontWeight: '700', color: colors.text },
+  summaryCount: { fontFamily: ff.mono, fontSize: 16, fontWeight: '800', color: colors.text },
 
   board: {
     paddingHorizontal: 20,
@@ -725,16 +725,16 @@ const s = StyleSheet.create({
     marginBottom: sp.xs,
   },
   colDot: { width: 8, height: 8, borderRadius: 4 },
-  colTitle: { flex: 1, fontSize: 14, fontWeight: '600', color: colors.text },
+  colTitle: { fontFamily: ff.display, flex: 1, fontSize: 14, fontWeight: '700', color: colors.text },
   colBadge: {
     backgroundColor: colors.card,
     borderRadius: r.full,
     paddingHorizontal: 7,
     paddingVertical: 2,
   },
-  colBadgeText: { fontSize: 11, fontWeight: '700', color: colors.textSub },
+  colBadgeText: { fontFamily: ff.mono, fontSize: 11, fontWeight: '700', color: colors.textSub },
   effortTotal: { backgroundColor: colors.blueDim, borderRadius: r.full, paddingHorizontal: 6, paddingVertical: 2 },
-  effortTotalTxt: { fontSize: 10, fontWeight: '700', color: colors.blue },
+  effortTotalTxt: { fontFamily: ff.mono, fontSize: 10, fontWeight: '700', color: colors.blue },
 
   addCard: {
     flexDirection: 'row',
@@ -779,7 +779,7 @@ const as = StyleSheet.create({
     borderRadius: r.full, marginBottom: sp.sm,
   },
   threatTxt: { fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
-  effortTxt: { fontSize: 10, fontWeight: '700', color: colors.blue },
+  effortTxt: { fontFamily: ff.mono, fontSize: 10, fontWeight: '700', color: colors.blue },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: sp.sm },
   action: {
     flexDirection: 'row', alignItems: 'center', gap: sp.md,

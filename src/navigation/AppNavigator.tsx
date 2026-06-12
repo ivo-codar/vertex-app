@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TabParamList } from '../types';
-import { colors } from '../theme';
+import { colors, ff } from '../theme';
 import ErrorBoundary from '../components/ErrorBoundary';
 import HomeScreen     from '../screens/home/HomeScreen';
 import GymScreen      from '../screens/gym/GymScreen';
@@ -70,10 +70,11 @@ export default function AppNavigator() {
           tabBarActiveTintColor: colors.accent,
           tabBarInactiveTintColor: colors.textSub,
           tabBarLabelStyle: {
+            fontFamily: ff.body,
             fontSize: 11,
             fontWeight: '600' as const,
             marginTop: 3,
-            letterSpacing: 0.2,
+            letterSpacing: 0.3,
           },
           tabBarLabel: cfg.label,
           tabBarIcon: ({ focused, color }) => (

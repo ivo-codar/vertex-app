@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, sp, r, fx } from '../theme';
+import { colors, sp, r, fx, ff } from '../theme';
 
 const BAR_H = 70;
 
@@ -59,7 +59,7 @@ export function StatBox({ label, value, color }: StatBoxProps) {
 const s = StyleSheet.create({
   barRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 5 },
   barCol: { flex: 1, alignItems: 'center', gap: 4 },
-  barVal: { fontSize: 11, fontWeight: '700' },
+  barVal: { fontFamily: ff.mono, fontSize: 11, fontWeight: '700' },
   barBg: {
     width: '100%',
     backgroundColor: colors.cardDeep,
@@ -70,15 +70,15 @@ const s = StyleSheet.create({
     borderColor: colors.border,
   },
   barFill: { width: '100%', borderRadius: r.sm },
-  barLabel: { fontSize: 11, color: colors.textMuted, textAlign: 'center' },
+  barLabel: { fontFamily: ff.mono, fontSize: 10, color: colors.textMuted, textAlign: 'center' },
 });
 
 const sb = StyleSheet.create({
   card: {
     flex: 1, borderRadius: r.md,
-    padding: sp.md, alignItems: 'center', gap: 4,
+    padding: sp.md, alignItems: 'center', gap: 5,
     ...fx.card,
   },
-  value: { fontSize: 20, fontWeight: '800' },
-  label: { fontSize: 12, color: colors.textSub, fontWeight: '600', textAlign: 'center' },
+  value: { fontFamily: ff.mono, fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
+  label: { fontFamily: ff.mono, fontSize: 10, color: colors.textSub, fontWeight: '600', textAlign: 'center', letterSpacing: 0.5, textTransform: 'uppercase' },
 });
